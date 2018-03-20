@@ -1,6 +1,6 @@
 import express from 'express';
 import {Book} from'../models/book'
-
+import Request from 'request';
 let router = express.Router();
 
 router.route('/books')
@@ -50,6 +50,59 @@ router.route('/books/:book_id')
             }else{
                 res.json({error: 'Livro não encontrado'})
             }
+        })
+    })
+router.route('/books/administrators/search/:search_id')    
+    .get((req,res)=>{ 
+        Request.get("https://www.googleapis.com/books/v1/volumes?q="+req.params.search_id+"& key="+process.env.GOOGLE_BOOK_API, (error, response, body) => {
+            if(error) {
+                res.json({error: "livro nao encontrado"});
+            }
+            let body_api = JSON.parse(body);
+            let data_api = body_api.items;
+            let data = [];
+            data_api.forEach(value => {
+                const obj = {"api_id": value.id, 
+                "title": value.volumeInfo.title,
+                "subtitle": value.volumeInfo.subtitle,
+                "authors": value.volumeInfo.authors,
+                "description": value.volumeInfo.description,
+                "language": value.volumeInfo.language,
+                "pageCount": value.volumeInfo.pageCount,
+                "categories": value.volumeInfo.categories,
+                "edition": value.volumeInfo.contentVersion, //contentVersion in google_api
+                }
+                data.push(obj);
+            
+            })
+            res.json(data);
+        });  
+    })
+router.route('/books/administrators/create/:search_id')    
+    .get((req,res)=>{
+        Request.get("https://www.googleapis.com/books/v1/volumes?q="+req.params.search_id+"& key="+process.env.GOOGLE_BOOK_API, (error, response, body) => {
+            if(error) {
+                res.json({error: "livro nao encontrado"});
+            }
+            let body_api = JSON.parse(body);
+            let data_api = body_api.items;
+            let data = {};
+            let results = data_api.filter(y =>{
+                if(y.id == req.params.search_id){
+                    data = {
+                        "api_id": y.id, 
+                        "title": y.volumeInfo.title,
+                        "subtitle": y.volumeInfo.subtitle,
+                        "description": y.volumeInfo.description,
+                        "language": y.volumeInfo.language,
+                        "pageCount": y.volumeInfo.pageCount,
+                        "edition": y.volumeInfo.contentVersion //contentVersion in google_api
+                    }
+                }
+            })  
+            Book.create(data).then((book) => {
+                res.json({message: 'Livro adicionado'});
+            })      
         })
     })
 

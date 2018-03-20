@@ -7,12 +7,18 @@ let sequelize = new Sequelize('books_db',null,null, {
     storage:'./data.sqlite'
 });
 
-// Cria model Livros
+// next step : insert authors and categories
 export let Book = sequelize.define('book',{
+    api_id: Sequelize.STRING,
     title: Sequelize.STRING,
-    author: Sequelize.STRING,
+    subtitle: Sequelize.STRING,
+    description: Sequelize.STRING,
     edition: Sequelize.INTEGER,
-    isnb: Sequelize.STRING,
+    language: Sequelize.STRING,
+    page_count: Sequelize.STRING,
+    
+    
+
 });
 
-Book.sync({force: true});
+Book.sync();
