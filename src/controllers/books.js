@@ -1,6 +1,7 @@
 import express from 'express';
-import {Book} from'../models/book'
+import {Book,Category,Author} from'../models/book'
 import Request from 'request';
+
 let router = express.Router();
 
 router.route('/books')
@@ -11,10 +12,11 @@ router.route('/books')
     })
     .post((req,res) => {
         const title = req.body.title;
-        const author =  req.body.author;
+        const description =  req.body.description;
         const edition = req.body.edition;
-        const isnb = req.body.isnb;
-        const data = {title:title, author:author,edition:edition ,isnb: isnb}
+        const language = req.body.language;
+        const page_count = req.body.page_count
+        const data = {title:title, author:author,edition:edition ,language: language, page_count: page_count}
         Book.create(data).then((book) => {
             res.json({message: 'Livro adicionado'});
         })      
@@ -22,7 +24,8 @@ router.route('/books')
 
 
 router.route('/books/:book_id')    
-    .get((req, res) => {        
+    .get((req, res) => {
+    
         Book.findById(req.params.book_id).then(book =>{
             res.json(book);
         })    
@@ -33,7 +36,8 @@ router.route('/books/:book_id')
                 book.update({title: req.body.title,
                 author: req.body.author,
                 edition: req.body.edition,
-                isnb: req.body.isnb}).then(() => {
+                language: req.body.language,
+                page_count: req.body.page_count,}).then(() => {
                     res.json(book)
                 })
             }else{
@@ -52,6 +56,8 @@ router.route('/books/:book_id')
             }
         })
     })
+
+
 router.route('/books/administrators/search/:search_id')    
     .get((req,res)=>{ 
         Request.get("https://www.googleapis.com/books/v1/volumes?q="+req.params.search_id+"& key="+process.env.GOOGLE_BOOK_API, (error, response, body) => {
@@ -60,11 +66,21 @@ router.route('/books/administrators/search/:search_id')
             }
             let body_api = JSON.parse(body);
             let data_api = body_api.items;
-            let data = [];
+            let data = [];             
+            // let categories_translate = [];
             data_api.forEach(value => {
+                // const translate_array = value.volumeInfo.categories;
+                // if (!(typeof translate_array === "undefined")){
+                //     categories_translate = translate_array.map(x =>{
+                //         Request.get("http://localhost:3000/books/translate/"+x, (error, response, body) => {
+                //             console.log(JSON.parse(body))
+                //             return x  = JSON.parse(body);
+                //      })
+                // })
+
+                // }
                 const obj = {"api_id": value.id, 
                 "title": value.volumeInfo.title,
-                "subtitle": value.volumeInfo.subtitle,
                 "authors": value.volumeInfo.authors,
                 "description": value.volumeInfo.description,
                 "language": value.volumeInfo.language,
@@ -78,32 +94,55 @@ router.route('/books/administrators/search/:search_id')
             res.json(data);
         });  
     })
-router.route('/books/administrators/create/:search_id')    
-    .get((req,res)=>{
-        Request.get("https://www.googleapis.com/books/v1/volumes?q="+req.params.search_id+"& key="+process.env.GOOGLE_BOOK_API, (error, response, body) => {
+
+router.route('/books/administrators/create')    
+    .post((req,res)=>{
+        Request.get("https://www.googleapis.com/books/v1/volumes?q="+req.body.api_id+"& key="+process.env.GOOGLE_BOOK_API, (error, response, body) => {
             if(error) {
                 res.json({error: "livro nao encontrado"});
             }
             let body_api = JSON.parse(body);
             let data_api = body_api.items;
             let data = {};
-            let results = data_api.filter(y =>{
-                if(y.id == req.params.search_id){
+            let categories;
+            let authors;
+            data_api.filter(y =>{
+                if(y.id == req.body.api_id){
                     data = {
                         "api_id": y.id, 
                         "title": y.volumeInfo.title,
-                        "subtitle": y.volumeInfo.subtitle,
                         "description": y.volumeInfo.description,
                         "language": y.volumeInfo.language,
-                        "pageCount": y.volumeInfo.pageCount,
+                        "page_count": y.volumeInfo.pageCount,
                         "edition": y.volumeInfo.contentVersion //contentVersion in google_api
+                        
                     }
+                    categories = y.volumeInfo.categories
+                    authors = y.volumeInfo.authors
                 }
-            })  
-            Book.create(data).then((book) => {
-                res.json({message: 'Livro adicionado'});
-            })      
+            })
+
+            Book.findOne({where:{api_id: data.api_id}}).then(searchBook =>{
+                if(searchBook == null){
+                    Book.create(data).then((book) => {
+                        Category.findAll({where:{description: categories}}).then(c=>{
+                            book.addCategories(c).then(resultCategory =>{
+                                Author.findAll({where:{name: authors}}).then(a =>{
+                                    book.addAuthors(a).then(resultAuthor=>{
+                                        res.json({message:'Livro adicionado'})
+                                    })
+                                })
+                            })
+                        })
+                    })
+                }else{
+                    res.json({message:'Livro já existe'})
+                }
+
+            })
+    
         })
     })
+
 
 export default router;
