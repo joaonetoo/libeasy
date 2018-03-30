@@ -19,10 +19,11 @@
   },
   "homepage": "https://github.com/joaonetoo/libeasy#readme",
   "dependencies": {
+    "bcrypt": "^1.0.3",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "request": "^2.85.0",
-    "sequelize": "^4.37.1",
+    "sequelize": "^4.37.5",
     "sqlite3": "^4.0.0"
   },
   "devDependencies": {

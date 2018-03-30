@@ -1,5 +1,5 @@
 import express from 'express';
-import {Author} from'../models/book'
+import {Author} from'../models/book';
 import Request from 'request';
 
 let router = express.Router();
@@ -47,5 +47,5 @@ router.route('/authors/:author_id')
             }
         })
     })
-
+    
 export default router;
