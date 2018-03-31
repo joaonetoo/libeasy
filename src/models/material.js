@@ -9,6 +9,6 @@ export let Material = sequelize.define('material',{
 
 
 
-});
+})
 
 Material.sync();
