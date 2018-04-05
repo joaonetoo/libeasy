@@ -1,7 +1,7 @@
 import express from 'express';
 import {Book,Category,Author} from'../models/book'
 import Request from 'request';
-
+import Sync from 'sync';
 let router = express.Router();
 
 router.route('/books')
@@ -124,17 +124,49 @@ router.route('/books/administrators/create')
 
             Book.findOne({where:{api_id: data.api_id}}).then(searchBook =>{
                 if(searchBook == null){
-                    Book.create(data).then((book) => {
-                        Category.findAll({where:{description: categories}}).then(c=>{
-                            book.addCategories(c).then(resultCategory =>{
-                                Author.findAll({where:{name: authors}}).then(a =>{
-                                    book.addAuthors(a).then(resultAuthor=>{
-                                        res.json({message:'Livro adicionado'})
-                                    })
-                                })
+                    Book.create(data).then(book => {
+
+                        let createCategory = function(category){
+                            Category.findOne({where:{description: category}}).then(searchCategory=>{
+                                if(searchCategory == null){
+                                    Category.create({description: category}).then( c=>{
+                                        return book.addCategory(c.id).then(() =>{})
+                                    })        
+                                }else{
+                                    return book.addCategory(searchCategory.id).then(() =>{})
+                                }
+                            })
+                        }
+
+                        categories.forEach(category =>{
+                            Sync(function(){
+                                createCategory(category);
                             })
                         })
+
+                        let createAuthor = function(author){
+                            Author.findOne({where:{name: author}}).then(searchAuthor =>{
+                                if(searchAuthor ==null){
+                                    Author.create({name: author}).then(a =>{
+                                        return book.addAuthor(a.id).then(()=>{})     
+                                    })
+                                }else{
+                                    return book.addAuthor(searchAuthor.id).then(()=>{})     
+                                }
+                            })
+
+                        };
+
+                        authors.forEach(author =>{
+                            Sync(function(){
+                                createAuthor(author)
+                            })
+                        })
+                        
+
+                       res.json({message: 'Livro Cadastrado'})                      
                     })
+
                 }else{
                     res.json({message:'Livro já existe'})
                 }

@@ -31,7 +31,8 @@ Category.sync();
 Author.sync();
 BookCategory.sync()
 BookAuthor.sync()
-// Book.sync();
-// Category.sync();
-// Author.sync();
-// BookCategorys.sync()
+// Book.sync({force: true});
+// Category.sync({force: true});
+// Author.sync({force: true});
+// BookCategory.sync({force: true})
+// BookAuthor.sync({force: true})
