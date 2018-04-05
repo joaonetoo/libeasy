@@ -137,12 +137,14 @@ router.route('/books/administrators/create')
                                 }
                             })
                         }
-
-                        categories.forEach(category =>{
-                            Sync(function(){
-                                createCategory(category);
+                        if (!(typeof categories === "undefined")) {
+                            categories.forEach(category =>{
+                                Sync(function(){
+                                    createCategory(category);
+                                })
                             })
-                        })
+                        }
+    
 
                         let createAuthor = function(author){
                             Author.findOne({where:{name: author}}).then(searchAuthor =>{
@@ -156,13 +158,13 @@ router.route('/books/administrators/create')
                             })
 
                         };
-
-                        authors.forEach(author =>{
-                            Sync(function(){
-                                createAuthor(author)
+                        if (!(typeof authors === "undefined")) {
+                            authors.forEach(author =>{
+                                Sync(function(){
+                                    createAuthor(author)
+                                })
                             })
-                        })
-                        
+                        } 
 
                        res.json({message: 'Livro Cadastrado'})                      
                     })
