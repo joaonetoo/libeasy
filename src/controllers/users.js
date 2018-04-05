@@ -22,7 +22,6 @@ router.route('/users')
 			)}
 
 			else{
-				res.json(user)
 				bcrypt.hash(req.body.password,12).then((result) =>{
     			User.create({login:login, password:result, email:email}).then((user) =>
     				{res.json({message: "User added", user});

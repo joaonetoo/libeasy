@@ -29,16 +29,16 @@ router.route ('/materials')
 
     });
 
-router.route ('/materials/:id')
+router.route ('/materials/:id_material')
     .get((req, res) =>{
-        Material.findById(req.params.material_id).then(material=>{ 
+        Material.findById(req.params.id_material).then(material=>{ 
             res.json(material);
 
         })
     })
 
     .put((req, res) =>{
-        Material.findById(req.params.material_id).then(material =>{
+        Material.findById(req.params.id_material).then(material =>{
             if(material){
                 material.update({name: req.body.name,
                                  description: req.body.description,
@@ -51,22 +51,19 @@ router.route ('/materials/:id')
             }
 
         })
-    
-        .delete((req, res) =>{
-            Material.findById(req.params.material).then(material => {
-                if(material){
+    })
+    .delete((req, res) =>{
+        Material.findById(req.params.id_material).then(material => {
+            if(material){
 
-                    material.destroy().then(material => {
-                        res.json({message: "Material deleted"})
+                material.destroy().then(material => {
+                    res.json({message: "Material deleted"})
 
-                    })
-                }else{
-                    res.json({error: "Matrial not found"})
+                })
+            }else{
+                res.json({error: "Matrial not found"})
 
-                }
-
-
-            })
+            }
 
 
         })

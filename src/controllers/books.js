@@ -1,7 +1,6 @@
 import express from 'express';
 import {Book,Category,Author} from'../models/book'
 import Request from 'request';
-import Sync from 'sync';
 let router = express.Router();
 
 router.route('/books')
@@ -69,16 +68,6 @@ router.route('/books/administrators/search/:search_id')
             let data = [];             
             // let categories_translate = [];
             data_api.forEach(value => {
-                // const translate_array = value.volumeInfo.categories;
-                // if (!(typeof translate_array === "undefined")){
-                //     categories_translate = translate_array.map(x =>{
-                //         Request.get("http://localhost:3000/books/translate/"+x, (error, response, body) => {
-                //             console.log(JSON.parse(body))
-                //             return x  = JSON.parse(body);
-                //      })
-                // })
-
-                // }
                 const obj = {"api_id": value.id, 
                 "title": value.volumeInfo.title,
                 "authors": value.volumeInfo.authors,
@@ -124,45 +113,32 @@ router.route('/books/administrators/create')
 
             Book.findOne({where:{api_id: data.api_id}}).then(searchBook =>{
                 if(searchBook == null){
-                    Book.create(data).then(book => {
-
-                        let createCategory = function(category){
-                            Category.findOne({where:{description: category}}).then(searchCategory=>{
-                                if(searchCategory == null){
-                                    Category.create({description: category}).then( c=>{
-                                        return book.addCategory(c.id).then(() =>{})
-                                    })        
-                                }else{
-                                    return book.addCategory(searchCategory.id).then(() =>{})
-                                }
-                            })
-                        }
+                    Book.create(data).then(book => {   
                         if (!(typeof categories === "undefined")) {
                             categories.forEach(category =>{
-                                Sync(function(){
-                                    createCategory(category);
-                                })
+                                Category.findOne({where:{description: category}}).then(searchCategory=>{
+                                    if(searchCategory == null){
+                                        Category.create({description: category}).then( c=>{
+                                            return book.addCategory(c.id).then(() =>{})
+                                        })        
+                                    }else{
+                                        return book.addCategory(searchCategory.id).then(() =>{})
+                                    }
+                                })    
                             })
                         }
     
-
-                        let createAuthor = function(author){
-                            Author.findOne({where:{name: author}}).then(searchAuthor =>{
-                                if(searchAuthor ==null){
-                                    Author.create({name: author}).then(a =>{
-                                        return book.addAuthor(a.id).then(()=>{})     
-                                    })
-                                }else{
-                                    return book.addAuthor(searchAuthor.id).then(()=>{})     
-                                }
-                            })
-
-                        };
                         if (!(typeof authors === "undefined")) {
                             authors.forEach(author =>{
-                                Sync(function(){
-                                    createAuthor(author)
-                                })
+                                Author.findOne({where:{name: author}}).then(searchAuthor =>{
+                                    if(searchAuthor ==null){
+                                        Author.create({name: author}).then(a =>{
+                                            return book.addAuthor(a.id).then(()=>{})     
+                                        })
+                                    }else{
+                                        return book.addAuthor(searchAuthor.id).then(()=>{})     
+                                    }
+                                })                            
                             })
                         } 
 
@@ -177,6 +153,7 @@ router.route('/books/administrators/create')
     
         })
     })
+
 
 
 export default router;
