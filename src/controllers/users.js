@@ -14,21 +14,33 @@ router.route('/users')
     
     .post((req, res) => {
     	let login = req.body.login;
-    	let email = req.body.email;
+		let email = req.body.email;
+		
+		
+		
     	// login check
     	User.findOne({where:{login: login}, attributes: ['id', ['login', 'email']]}).then(user =>{
-			if(user){
-				res.json({message: 'Esse login já existe'} 
-			)}
+			if(user){				
+				return res.send({message: 'Esse login já existe'});
+			}
+			else {
+				//email check
+				User.findOne({ where: { email: email }, attributes: ['id', ['login', 'email']] }).then(user => {
+					if (user) {
+						return res.json({ message: 'Esse email já existe' });
+					}
+					else{
+						bcrypt.hash(req.body.password, 12).then((result) => {
+							User.create({ login: login, password: result, email: email }).then((u) => {
+								res.json({ message: "User added", u });
+							})
+						});
 
-			else{
-				res.json(user)
-				bcrypt.hash(req.body.password,12).then((result) =>{
-    			User.create({login:login, password:result, email:email}).then((user) =>
-    				{res.json({message: "User added", user});
-    			})
-    		});}			
-		})    	
+					}
+				})
+
+			}
+		})			
     });
 
 router.route('/users/:user_id')
@@ -37,7 +49,25 @@ router.route('/users/:user_id')
 			res.json(user)
 			
 		})
-    })
+	})
+	.put((req, res) => {
+		User.findById(req.params.user_id).then(userEscolhido => {
+			if(userEscolhido) {
+				bcrypt.hash(req.body.password, 12).then((result) => {
+					userEscolhido.update({
+						login: req.body.login,
+						password: result, 
+						email: req.body.email
+					})
+				}).then(() => {
+					res.json(userEscolhido)
+				})} 
+			
+				else {
+				res.json({ error: "Usuário não encontrado" })
+			}
+		})
+	})
 	
 	.delete((req,res) => {
 		User.findById(req.params.user_id).then(user =>{
@@ -46,7 +76,6 @@ router.route('/users/:user_id')
 			res.json({message: 'User deletado'})
 		}
 		)}
-
 		else{
 			res.json({error:'User não encontrado'})}
 		})
