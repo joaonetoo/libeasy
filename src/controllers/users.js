@@ -36,11 +36,21 @@ router.route('/users')
 							})
 						});
 
+<<<<<<< HEAD
 					}
 				})
 
 			}
 		})			
+=======
+			else{
+				bcrypt.hash(req.body.password,12).then((result) =>{
+    			User.create({login:login, password:result, email:email}).then((user) =>
+    				{res.json({message: "User added", user});
+    			})
+    		});}			
+		})    	
+>>>>>>> refs/remotes/origin/master
     });
 
 router.route('/users/:user_id')

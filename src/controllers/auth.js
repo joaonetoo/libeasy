@@ -1,7 +1,8 @@
 import express from 'express';
 import {User} from'../models/user';
 import Request from 'request';
-
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 let router = express.Router();
 		
@@ -13,7 +14,8 @@ router.route('/auth')
 			bcrypt.compare(req.body.password,
 				user.password).then((result) => {
 			if (result) { // password is correct
-				res.json({message: 'User authenticated'});} 
+				const token = jwt.sign(user.get({plain: true}), "secret");            
+				res.json({message: 'User authenticated', token:token});} 
 			else { // password is wrong
 				res.json({message: 'Wrong password'});}
 			});}

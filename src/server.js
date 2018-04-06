@@ -3,6 +3,8 @@ import routesBook from './controllers/books';
 import routesCategory from './controllers/categorys';
 import routesAuthor from './controllers/authors';
 import routesUser from './controllers/users';
+import routesAuth from './controllers/auth'
+import routesMaterial from './controllers/materials'
 import bodyParser from 'body-parser';
 
 
@@ -17,6 +19,8 @@ app.use('/',routesUser);
 app.use('/',routesBook);
 app.use('/',routesCategory);
 app.use('/',routesAuthor);
+app.use('/',routesAuth)
+app.use('/',routesMaterial)
 
 
 app.listen(3000,() => {
