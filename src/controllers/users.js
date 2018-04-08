@@ -15,26 +15,36 @@ router.route('/users')
     .post((req, res) => {
     	let login = req.body.login;
 		let email = req.body.email;
+		let cpf = req.body.cpf;
 		
 		
 		
     	// login check
-    	User.findOne({where:{login: login}, attributes: ['id', ['login', 'email']]}).then(user =>{
+    	User.findOne({where:{login: login}, attributes: ['id', ['login', 'email', 'cpf']]}).then(user =>{
 			if(user){				
-				return res.send({message: 'Esse login já existe'});
+				return res.send({message: 'Esse login já está em uso'});
 			}
 			else {
 				//email check
-				User.findOne({ where: { email: email }, attributes: ['id', ['login', 'email']] }).then(user => {
+				User.findOne({ where: { email: email }, attributes: ['id', ['login', 'email', 'cpf']] }).then(user => {
 					if (user) {
-						return res.json({ message: 'Esse email já existe' });
+						return res.json({ message: 'Esse email já está em uso' });
 					}
-					else{
-						bcrypt.hash(req.body.password, 12).then((result) => {
-							User.create({ login: login, password: result, email: email }).then((u) => {
-								res.json({ message: "User added", u });
-							})
-						});
+					else {
+						//cpf check
+						User.findOne({ where: { cpf: cpf }, attributes: ['id', ['login', 'email', 'cpf']] }).then(user => {
+							if (user) {
+								return res.json({ message: 'Esse cpf já está em uso' });
+							}
+							else {
+								bcrypt.hash(req.body.password, 12).then((result) => {
+									User.create({ login: login, password: result, email: email }).then((u) => {
+										res.json({ message: "User added", u });
+									})
+								});
+
+							}
+						})
 
 					}
 				})
