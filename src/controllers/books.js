@@ -1,12 +1,12 @@
 import express from 'express';
-import {Book,Category,Author} from'../models/book'
+import {Book,Category,Author,BookAuthor} from'../models/book'
 import Request from 'request';
 let router = express.Router();
 
 router.route('/books')
     .get((req,res) => {
-        Book.findAll().then(books =>{
-            res.send(books);
+        Book.findAll({include: [Category,Author]}).then(books =>{
+              res.json(books)
         })
     })
     .post((req,res) => {
@@ -17,7 +17,7 @@ router.route('/books')
         const page_count = req.body.page_count
         const data = {title:title, author:author,edition:edition ,language: language, page_count: page_count}
         Book.create(data).then((book) => {
-            res.json({message: 'Livro adicionado'});
+            res.json({message: 'Book added'});
         })      
     })
 
@@ -25,8 +25,8 @@ router.route('/books')
 router.route('/books/:book_id')    
     .get((req, res) => {
     
-        Book.findById(req.params.book_id).then(book =>{
-            res.json(book);
+        Book.findById(req.params.book_id,{include: [Category,Author]}).then(book =>{
+            res.json(book)
         })    
     })
     .put((req,res) => {
@@ -40,7 +40,7 @@ router.route('/books/:book_id')
                     res.json(book)
                 })
             }else{
-                res.json({error: "Livro não encontrado"})
+                res.json({error: "Book not found"})
             }
         })
     })
@@ -48,20 +48,20 @@ router.route('/books/:book_id')
         Book.findById(req.params.book_id).then(book => {
             if(book){
                 book.destroy().then(book =>{
-                    res.json({message: 'Livro deletado.'})
+                    res.json({message: 'Book deleted.'})
                 })
             }else{
-                res.json({error: 'Livro não encontrado'})
+                res.json({error: 'Book not found'})
             }
         })
     })
 
 
-router.route('/books/administrators/search/:search_id')    
+router.route('/books/search/:search_id')    
     .get((req,res)=>{ 
         Request.get("https://www.googleapis.com/books/v1/volumes?q="+req.params.search_id+"& key="+process.env.GOOGLE_BOOK_API, (error, response, body) => {
             if(error) {
-                res.json({error: "livro nao encontrado"});
+                res.json({error: "Book not found"});
             }
             let body_api = JSON.parse(body);
             let data_api = body_api.items;
@@ -84,7 +84,7 @@ router.route('/books/administrators/search/:search_id')
         });  
     })
 
-router.route('/books/administrators/create')    
+router.route('/books/create')    
     .post((req,res)=>{
         Request.get("https://www.googleapis.com/books/v1/volumes?q="+req.body.api_id+"& key="+process.env.GOOGLE_BOOK_API, (error, response, body) => {
             if(error) {
@@ -142,11 +142,11 @@ router.route('/books/administrators/create')
                             })
                         } 
 
-                       res.json({message: 'Livro Cadastrado'})                      
+                       res.json({message: 'Book added'})                      
                     })
 
                 }else{
-                    res.json({message:'Livro já existe'})
+                    res.json({message:'Book added'})
                 }
 
             })

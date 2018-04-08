@@ -19,8 +19,8 @@ export let Author = sequelize.define('author', {
     name: Sequelize.STRING,
 })
 
-const BookCategory = sequelize.define('bookCategory', {})
-const BookAuthor = sequelize.define('bookAuthor', {})
+export let BookCategory = sequelize.define('bookCategory', {})
+export let BookAuthor = sequelize.define('bookAuthor', {})
 Book.belongsToMany(Category, {through: BookCategory}) ;
 Category.belongsToMany(Book, {through: BookCategory});
 Book.belongsToMany(Author,{through: BookAuthor});

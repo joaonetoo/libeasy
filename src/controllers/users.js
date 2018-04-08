@@ -27,19 +27,19 @@ router.route('/users')
     	// login check
     	User.findOne({where:{login: login}, attributes: ['id', ['login', 'email',]]}).then(user =>{
 			if(user){				
-				return res.send({message: 'Esse login já está em uso'});
+				res.send({message: 'login already exists'});
 			}
 			else {
 				//email check
 				User.findOne({ where: { email: email }, attributes: ['id', ['login', 'email']] }).then(user => {
 					if (user) {
-						return res.json({ message: 'Esse email já está em uso' });
+						res.json({ message: 'email already exists' });
 					}
 					else {
 						//cpf check
 						User.findOne({ where: { cpf: cpf }, attributes: ['id', ['cpf','cpf']] }).then(user => {
 							if (user) {
-								return res.json({ message: 'Esse cpf já está em uso' });
+								res.json({ message: 'cpf already exists' });
 							}
 							else {
 								bcrypt.hash(req.body.password, 12).then((result) => {
@@ -95,28 +95,26 @@ router.route('/users/:user_id')
 		
 		User.findById(req.params.user_id).then(userTest => { 
 		if(userTest){
-			
 			// login check
-			User.findOne({ where: { login: login }, attributes: ['id', ['login', 'email',]] }).then(user => {
+			User.findOne({ where: { login: login } }).then(user => {
 				if (user) {
-					res.send(userTest.id == user.id )
-					res.send({ message: 'Esse login já está em uso',user });
+					res.send({ message: 'login already exists', user});
 				}
 				else {
 					//email check
-					User.findOne({ where: { email: email }, attributes: ['id', ['login', 'email']] }).then(user => {
+					User.findOne({ where: { email: email } }).then(user => {
 						if (user) {
-							return res.json({ message: 'Esse email já está em uso' });
+							res.json({ message: 'email already exists' });
 						}
 						else {
 							//cpf check
-							User.findOne({ where: { cpf: cpf }, attributes: ['cpf', ['cpf', 'cpf']] }).then(user => {
+							User.findOne({ where: { cpf: cpf } }).then(user => {
 								if (user) {
-									return res.json({ message: 'Esse cpf já está em uso' });
+									res.json({ message: 'cpf already exists' });
 								}
 								else {
 									bcrypt.hash(req.body.password, 12).then((result) => {
-										User.update({
+										userTest.update({
 											login: login,
 											password: result,
 											email: email,
@@ -128,7 +126,7 @@ router.route('/users/:user_id')
 											type: type
 
 										}).then((u) => {
-											res.json({ message: "User added", u });
+											res.json({ message: "User updated", u });
 										})
 									});
 
@@ -153,11 +151,11 @@ router.route('/users/:user_id')
 		User.findById(req.params.user_id).then(user =>{
 		if(user){
 			user.destroy().then(user =>{
-			res.json({message: 'User deletado'})
+			res.json({message: 'User deleted'})
 		}
 		)}
 		else{
-			res.json({error:'User não encontrado'})}
+			res.json({error:'User not found'})}
 		})
 	})
 
