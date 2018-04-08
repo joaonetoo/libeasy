@@ -21,13 +21,13 @@ router.route('/users')
     	// login check
     	User.findOne({where:{login: login}, attributes: ['id', ['login', 'email']]}).then(user =>{
 			if(user){				
-				return res.send({message: 'Esse login já existe'});
+				return res.send({message: 'login already exists'});
 			}
 			else {
 				//email check
 				User.findOne({ where: { email: email }, attributes: ['id', ['login', 'email']] }).then(user => {
 					if (user) {
-						return res.json({ message: 'Esse email já existe' });
+						return res.json({ message: 'email already exists' });
 					}
 					else{
 						bcrypt.hash(req.body.password, 12).then((result) => {
@@ -64,7 +64,7 @@ router.route('/users/:user_id')
 				})} 
 			
 				else {
-				res.json({ error: "Usuário não encontrado" })
+				res.json({ error: "User not found" })
 			}
 		})
 	})
@@ -73,11 +73,11 @@ router.route('/users/:user_id')
 		User.findById(req.params.user_id).then(user =>{
 		if(user){
 			user.destroy().then(user =>{
-			res.json({message: 'User deletado'})
+			res.json({message: 'User deleted'})
 		}
 		)}
 		else{
-			res.json({error:'User não encontrado'})}
+			res.json({error:'User not found'})}
 		})
 	})
 
