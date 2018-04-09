@@ -22,53 +22,88 @@ router.route ('/materials')
         Material.create({name: name, description: description, category: category}).then((materials) =>{ 
             res.json({message: "material added"});
 
-        })
+        });
         
 
 
 
     });
 
-router.route ('/materials/:id_material')
+router.route ('/materials/:material_id')
     .get((req, res) =>{
-        Material.findById(req.params.id_material).then(material=>{ 
+        Material.findById(req.params.material_id).then(material=>{ 
             res.json(material);
+           
 
         })
     })
 
-    .put((req, res) =>{
-        Material.findById(req.params.id_material).then(material =>{
+    .put((req, res)=>{
+        Material.findById(req.params.material_id).then(material=>{
             if(material){
                 material.update({name: req.body.name,
-                                 description: req.body.description,
-                                category: req.body.category}).then(() =>{
-                                    res.json(material)
-                                })
-
+                            description: req.body.description,
+                            category: req.body.category}).then(()=>{
+                        res.json(material);
+                 })
             }else{
-                res.json({error: "Material not found"});
-            }
-
-        })
+                res.json({error: "Material not found"})
+            };
+        });
     })
-    .delete((req, res) =>{
-        Material.findById(req.params.id_material).then(material => {
+
+    .delete((req, res)=>{
+        Material.findById(req.params.material_id).then(material =>{
             if(material){
-
-                material.destroy().then(material => {
-                    res.json({message: "Material deleted"})
-
-                })
+                material.destroy().then((material =>{
+                    res.json({message:'Material deleted'});
+                }))
             }else{
-                res.json({error: "Matrial not found"})
-
+                res.json({error:'Material not found'});
             }
-
 
         })
 
 
-    })
+    });
+    
+export default router;   
+    
+        // })
 
-export default router;
+    // .put((req, res) =>{
+    //     Material.findById(req.params.material_id).then(material =>{
+    //         if(material){
+    //             material.update({name: req.body.name,
+    //                              description: req.body.description,
+    //                             category: req.body.category}).then(() =>{
+    //                                 res.json(material)
+    //                             })
+
+    //         }else{
+    //             res.json({error: "Material not found"});
+    //         }
+
+    //     })
+    
+    //     .delete((req, res) =>{
+    //         Material.findById(req.params.material_i).then(material => {
+    //             if(material){
+
+    //                 material.destroy().then(material => {
+    //                     res.json({message: "Material deleted"})
+
+    //                 })
+    //             }else{
+    //                 res.json({error: "Matrial not found"})
+
+    //             }
+
+
+    //         })
+
+
+    //     })
+
+
+    // })
