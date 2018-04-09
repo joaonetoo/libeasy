@@ -5,6 +5,8 @@ import routesAuthor from './controllers/authors';
 import routesUser from './controllers/users';
 import routesAuth from './controllers/auth'
 import routesMaterial from './controllers/materials'
+import routesEmail from './controllers/emails'
+
 import bodyParser from 'body-parser';
 
 
@@ -21,6 +23,8 @@ app.use('/',routesCategory);
 app.use('/',routesAuthor);
 app.use('/',routesAuth)
 app.use('/',routesMaterial)
+app.use('/',routesEmail)
+
 
 
 app.listen(3000,() => {
