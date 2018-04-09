@@ -6,7 +6,6 @@ import routesUser from './controllers/users';
 import routesAuth from './controllers/auth'
 import routesMaterial from './controllers/materials'
 import routesEmail from './controllers/emails'
-
 import bodyParser from 'body-parser';
 
 
@@ -21,9 +20,9 @@ app.use('/',routesUser);
 app.use('/',routesBook);
 app.use('/',routesCategory);
 app.use('/',routesAuthor);
-app.use('/',routesAuth)
-app.use('/',routesMaterial)
-app.use('/',routesEmail)
+app.use('/',routesAuth);
+app.use('/',routesMaterial);
+app.use('/',routesEmail);
 
 
 
