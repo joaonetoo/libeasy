@@ -5,10 +5,6 @@ export let Material = sequelize.define('material',{
     name: Sequelize.STRING,
     description: Sequelize.STRING,
     category: Sequelize.STRING,
-
-
-
-
 })
 
 Material.sync();
