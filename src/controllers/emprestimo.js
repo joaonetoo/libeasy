@@ -16,12 +16,10 @@ router.route ('/emprestimos')
 	})
 	
 	.post((req, res) => {
-		const data_inicial = req.body.data_inicial;
 		const data_final = req.body.data_final;
 		const userId = req.body.userId;
 		const bookId = req.body.bookId;
 		const materialId = req.body.materialId;
-		const entregue = req.body.entregue;
 
 		User.findOne({where:{id: userId}, attributes: ['id']}).then(user => {
 			if(!user) {
@@ -36,12 +34,10 @@ router.route ('/emprestimos')
 								res.json({ message: 'Material não existe.' });
 							} else {
 								Emprestimo.create({
-									data_inicial: data_inicial,
 									data_final: data_final,
 									userId: userId,
 									bookId: bookId,
 									materialId: materialId,
-									entregue: entregue
 								}).then(emprestimo => {
 									res.json({ message: "Emprestimo adicionado", emprestimo });
 								})
