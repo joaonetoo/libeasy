@@ -27,7 +27,7 @@ router.route('/users')
     	// login check
     	User.findOne({where:{login: login}}).then(user =>{
 			if(user){				
-				res.send({message: 'login already exists'});
+				res.json({message: 'login already exists'});
 			}
 			else {
 				//email check
