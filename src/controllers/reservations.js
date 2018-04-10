@@ -6,8 +6,10 @@ import Request from 'request';
 import Sequelize from 'sequelize';
 import sgMail from '@sendgrid/mail';
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+import {checkToken} from './auth'
 
 let router = express.Router();
+router.use(checkToken)
 
 router.route('/reservations')
     .get((req,res)=>{

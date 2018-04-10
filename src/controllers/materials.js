@@ -1,8 +1,11 @@
 import express from 'express';
 import {Material} from '../models/material';
 import Request from 'request';
+import {checkToken} from './auth'
 
 let router = express.Router();
+
+router.use(checkToken)
 
 router.route ('/materials')
     .get((req,res) => {

@@ -1,8 +1,11 @@
 import express from 'express';
 import {BookCategory,Book,Category} from'../models/book'
 import Request from 'request';
+import {checkToken} from './auth'
 
 let router = express.Router();
+
+router.use(checkToken)
 
 router.route('/categories')
     .get((req,res) => {

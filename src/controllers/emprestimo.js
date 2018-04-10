@@ -5,8 +5,10 @@ import {Material} from '../models/material'
 import {Emprestimo} from '../models/emprestimo';
 import Request from 'request';
 import Sequelize from 'sequelize';
+import {checkToken} from './auth'
 
 let router = express.Router();
+router.use(checkToken)
 
 router.route ('/emprestimos')
 	.get((req, res) => {

@@ -1,8 +1,10 @@
 import express from 'express';
 import {Rating} from '../models/rating';
 import Request from 'request';
+import {checkToken} from './auth'
 
 let router = express.Router();
+router.use(checkToken)
 
 router.route ('/ratings')
     .get((req,res) => {

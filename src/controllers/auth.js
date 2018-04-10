@@ -14,7 +14,7 @@ router.route('/auth')
 			bcrypt.compare(req.body.password,
 				user.password).then((result) => {
 			if (result) { // password is correct
-				const token = jwt.sign(user.get({plain: true}), "secret");            
+				const token = jwt.sign(user.get({plain: true}), process.env.SECRETOKEN);            
 				res.json({message: 'User authenticated', token:token});} 
 			else { // password is wrong
 				res.json({message: 'Wrong password'});}
@@ -24,5 +24,19 @@ router.route('/auth')
 	});
 });
 
-
+export let checkToken = (req,res,next)=>{
+		const token = req.headers['x-access-token'];
+		if(token){
+			jwt.verify(token,process.env.SECRETOKEN,(err,decoded)=>{
+				if(err){
+					res.json({error: 'User unauthorized '})
+				}else{
+					req.user = decoded
+					next()
+				}
+			})
+		}else{
+			res.json({message:'Token not found'})
+		}
+	}
 export default router;

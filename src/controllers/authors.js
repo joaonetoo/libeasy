@@ -1,8 +1,11 @@
 import express from 'express';
 import {BookAuthor,Book,Author} from'../models/book';
 import Request from 'request';
+import {checkToken} from './auth'
 
 let router = express.Router();
+
+router.use(checkToken)
 
 router.route('/authors')
     .get((req,res) => {
@@ -18,6 +21,7 @@ router.route('/authors')
             res.json({message: 'Author added'})
         })
     })
+
 
 router.route('/authors/:author_id')
     .get((req,res) => {
