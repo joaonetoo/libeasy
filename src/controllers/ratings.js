@@ -1,7 +1,7 @@
 import express from 'express';
 import {Rating} from '../models/rating';
 import Request from 'request';
-import {checkToken} from './auth'
+import {checkToken} from './middlewares'
 
 let router = express.Router();
 router.use(checkToken)
