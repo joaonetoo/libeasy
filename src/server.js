@@ -5,6 +5,7 @@ import routesAuthor from './controllers/authors';
 import routesUser from './controllers/users';
 import routesAuth from './controllers/auth'
 import routesMaterial from './controllers/materials'
+import routesEmprestimo from './controllers/emprestimo'
 import routesReservation from './controllers/reservations'
 
 import bodyParser from 'body-parser';
@@ -23,6 +24,7 @@ app.use('/',routesCategory);
 app.use('/',routesAuthor);
 app.use('/',routesAuth)
 app.use('/',routesMaterial)
+app.use('/',routesEmprestimo)
 app.use('/',routesReservation)
 
 
