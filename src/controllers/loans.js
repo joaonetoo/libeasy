@@ -31,24 +31,16 @@ router.route ('/loans')
 				res.json({ message: s.userNotFound });
 			} else {
 				Book.findOne({where:{id: bookId}, attributes: ['id']}).then(book => {
-					if(!book) {
-						res.json({ message: s.bookNotFound });
-					} else {
-						Material.findOne({where:{id: materialId}, attributes: ['id']}).then(material => {
-							if(!material) {
-								res.json({ message: s.materialNotFound });
-							} else {
-								Loan.create({
-									final_date: final_date,
-									userId: userId,
-									bookId: bookId,
-									materialId: materialId,
-								}).then(loan => {
-									res.json({ message: s.loanAdded, loan });
-								})
-							}
-						})
-					}
+					Material.findOne({where:{id: materialId}, attributes: ['id']}).then(material => {
+							Loan.create({
+								final_date: final_date,
+								userId: userId,
+								bookId: bookId,
+								materialId: materialId,
+							}).then(loan => {
+								res.json({ message: s.loanAdded, loan });
+							})	
+					})
 				})
 			}
 		})
@@ -93,15 +85,14 @@ router.route('/loans/:loan_id')
 
 router.route('/loans/search/:userId')
     .get((req,res)=>{
-        Loan.findAll({where:{entregue: false, userId: req.params.userId}}).then(loans => {
+        Loan.findAll({where:{delivered: false, userId: req.params.userId}}).then(loans => {
             res.json(loans)
         })
 	})
 	
 function dateDiff(finalDate) {
 	let now = new Date();
-	let diff = Math.round(now - finalDate)/(1000*60*60*24);
-
+	let diff = now.getDate() - finalDate.getDate();
 	return diff;
 }
 

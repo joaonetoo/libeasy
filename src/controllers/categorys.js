@@ -88,7 +88,6 @@ router.route('/addCategoryToBook')
         }               
     })
 router.route('/removeCategoryToBook')
-
     .delete((req,res)=>{
         if(req.user.type == "librarian"){
             BookCategory.findOne({where:{bookId:req.body.bookId,categoryId:req.body.categoryId}})
