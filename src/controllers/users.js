@@ -2,8 +2,10 @@ import express from 'express';
 import {User} from'../models/user';
 import Request from 'request';
 import bcrypt from 'bcrypt';
+import Sequelize from 'sequelize';
 
 let router = express.Router();
+const Op = Sequelize.Op;
 
 router.route('/users')
     .get((req,res) => {
@@ -24,50 +26,38 @@ router.route('/users')
 		
 		
 		
-    	// login check
-    	User.findOne({where:{login: login}}).then(user =>{
+    	// login and cpf and email check
+		User.findOne({
+			where: {
+				[Op.or]: [
+					{ cpf: cpf },
+					{ email:email }
+				]
+			}
+		}).then(user =>{
 			if(user){				
-				res.json({message: 'login already exists'});
+				res.json({message: 'User already exists'});
 			}
 			else {
-				//email check
-				User.findOne({ where: { email: email }}).then(user => {
-					if (user) {
-						res.json({ message: 'email already exists' });
-					}
-					else {
-						//cpf check
-						User.findOne({ where: { cpf: cpf }}).then(user => {
-							if (user) {
-								res.json({ message: 'cpf already exists' });
-							}
-							else {
-								bcrypt.hash(req.body.password, 12).then((result) => {
-									User.create({ 
-										login: login, 
-										password: result, 
-										email: email,
-										cpf:cpf,
-										first_name: first_name,
-										last_name: last_name,
-										endereço: endereço,
-										birthday: birthday,
-										type: type
-
-									 }).then((u) => {
-										res.json({ message: "User added", u });
-									})
-								});
-
-							}
+				bcrypt.hash(req.body.password, 12).then((result) => {
+				User.create({ 
+				login: login, 
+				password: result, 
+				email: email,
+				cpf:cpf,
+				first_name: first_name,
+				last_name: last_name,
+				endereço: endereço,
+				birthday: birthday,
+				type: type})
+					.then((u) => {
+						res.json({ message: "User added", u });
 						})
-
-					}
-				})
-
-			}
-		})			
-    });
+					});
+				}
+			})
+		})
+						
 
 router.route('/users/:user_id')
 	.get((req, res) => {
@@ -76,7 +66,7 @@ router.route('/users/:user_id')
 				res.json(user)
 			}
 			else{
-				res.json('User no found');
+				res.json('User not found');
 			}
 			
 		})
@@ -93,56 +83,53 @@ router.route('/users/:user_id')
 		let type = req.body.type;
 		
 		
-		User.findById(req.params.user_id).then(userTest => { 
-		if(userTest){
-			// login check
-			User.findOne({ where: { login: login } }).then(user => {
+		User.findById(req.params.user_id).then(u => { 
+		if(u){
+			// login and email and cpf check
+			User.find({
+				where: {
+					[Op.or]: [
+						{ cpf: cpf },
+						{ email: email }
+					]
+				}
+			}).then(user => {
 				if (user) {
-					res.send({ message: 'login already exists', user});
+					if(user.login == login){
+						res.json({ message: 'Login already exists'});
+					}
+					else if(user.cpf == cpf){
+						res.json({ message: 'CPF already exists'});
+					}
+					else if (user.email == email) {
+						res.json({ message: 'Email already exists'});	}
+
 				}
 				else {
-					//email check
-					User.findOne({ where: { email: email } }).then(user => {
-						if (user) {
-							res.json({ message: 'email already exists' });
-						}
-						else {
-							//cpf check
-							User.findOne({ where: { cpf: cpf } }).then(user => {
-								if (user) {
-									res.json({ message: 'cpf already exists' });
-								}
-								else {
-									bcrypt.hash(req.body.password, 12).then((result) => {
-										userTest.update({
-											login: login,
-											password: result,
-											email: email,
-											cpf: cpf,
-											first_name: first_name,
-											last_name: last_name,
-											endereço: endereço,
-											birthday: birthday,
-											type: type
-
-										}).then((u) => {
-											res.json({ message: "User updated", u });
-										})
-									});
-
-								}
+					bcrypt.hash(req.body.password, 12).then((result) => {
+						u.update({
+							login: login,
+							password: result,
+							email: email,
+							cpf: cpf,
+							first_name: first_name,
+							last_name: last_name,
+							endereço: endereço,
+							birthday: birthday,
+							type: type
 							})
+							.then((u) => {
+								res.json({ message: "User changed", u });
+							})
+							});
 
 						}
 					})
 
-				}
-			})
-			}
+				}			
 		else{
 			res.json({ error: 'User not found' })
-		
-		}
+			}
 		})
 	})
 	
@@ -151,8 +138,7 @@ router.route('/users/:user_id')
 		User.findById(req.params.user_id).then(user =>{
 		if(user){
 			user.destroy().then(user =>{
-			res.json({message: 'User deleted'})
-		}
+			res.json({message: 'User deleted'})}
 		)}
 		else{
 			res.json({error:'User not found'})}
