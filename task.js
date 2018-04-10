@@ -1,6 +1,7 @@
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 var _user = require('/home/joao/Documentos/libeasy/dist/models/user.js');
+var _reservation = require('/home/joao/Documentos/libeasy/dist/models/reservation.js');
 
 _user.User.findAll().then(function (users) {
   users.forEach(function (user) {
@@ -19,3 +20,24 @@ _user.User.findAll().then(function (users) {
   
   });
 })
+
+_reservation.Reservation.findAll().then(function(reservations){
+  reservations.forEach(function(reservation){
+    if (validateReservation(reservation.date)){
+      reservation.update({expired: true}).then(()=>{
+        console.log('change expired to true');
+      })
+    }
+  })
+})
+
+function validateReservation(date){
+  var yourDate = date
+  var dateNow  = new Date()
+  if ((dateNow.getDate() - yourDate.getDate()) >= 2 ){
+      return true
+  }else{
+      return false
+  }
+}
+
