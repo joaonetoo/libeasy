@@ -20,10 +20,10 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
 app.use('/',routesUser);
+app.use('/',routesAuth);
 app.use('/',routesBook);
 app.use('/',routesCategory);
 app.use('/',routesAuthor);
-app.use('/',routesAuth);
 app.use('/',routesMaterial);
 app.use('/',routesRating);
 app.use('/',routesEmprestimo);

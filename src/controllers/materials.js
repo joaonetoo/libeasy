@@ -1,7 +1,7 @@
 import express from 'express';
 import {Material} from '../models/material';
 import Request from 'request';
-import {checkToken} from './auth'
+import {checkToken} from './middlewares'
 
 let router = express.Router();
 
