@@ -25,19 +25,19 @@ router.route('/users')
 		
 		
     	// login check
-    	User.findOne({where:{login: login}, attributes: ['id', ['login', 'email',]]}).then(user =>{
+    	User.findOne({where:{login: login}}).then(user =>{
 			if(user){				
 				res.send({message: 'login already exists'});
 			}
 			else {
 				//email check
-				User.findOne({ where: { email: email }, attributes: ['id', ['login', 'email']] }).then(user => {
+				User.findOne({ where: { email: email }}).then(user => {
 					if (user) {
 						res.json({ message: 'email already exists' });
 					}
 					else {
 						//cpf check
-						User.findOne({ where: { cpf: cpf }, attributes: ['id', ['cpf','cpf']] }).then(user => {
+						User.findOne({ where: { cpf: cpf }}).then(user => {
 							if (user) {
 								res.json({ message: 'cpf already exists' });
 							}
@@ -76,7 +76,7 @@ router.route('/users/:user_id')
 				res.json(user)
 			}
 			else{
-				res.json('Usuário não encontrado');
+				res.json('User no found');
 			}
 			
 		})
@@ -140,7 +140,7 @@ router.route('/users/:user_id')
 			})
 			}
 		else{
-			res.json({ error: 'User não encontrado' })
+			res.json({ error: 'User not found' })
 		
 		}
 		})
