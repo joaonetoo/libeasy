@@ -29,7 +29,7 @@ router.route('/users')
     	// login and cpf and email check
 		User.findOne({
 			where: {
-				[Op.or]: [
+				[Op.or]: [{login:login},
 					{ cpf: cpf },
 					{ email:email }
 				]
@@ -88,24 +88,26 @@ router.route('/users/:user_id')
 			// login and email and cpf check
 			User.find({
 				where: {
-					[Op.or]: [
+					[Op.or]: [{login, login},
 						{ cpf: cpf },
 						{ email: email }
 					]
 				}
 			}).then(user => {
-				if (user) {
-					if(user.login == login){
-						res.json({ message: 'Login already exists'});
+				if(user){
+					if (user.id != u.id) {
+						if(user.login == login){
+							res.json({ message: 'Login already exists'});
+						}
+						else if(user.cpf == cpf){
+							res.json({ message: 'CPF already exists'});
+						}
+						else if (user.email == email) {
+							res.json({ message: 'Email already exists'});	
+						}
 					}
-					else if(user.cpf == cpf){
-						res.json({ message: 'CPF already exists'});
-					}
-					else if (user.email == email) {
-						res.json({ message: 'Email already exists'});	}
-
-				}
-				else {
+					else {
+					// Verifica o usuário com o mesmo id depois modifica
 					bcrypt.hash(req.body.password, 12).then((result) => {
 						u.update({
 							login: login,
@@ -121,12 +123,31 @@ router.route('/users/:user_id')
 							.then((u) => {
 								res.json({ message: "User changed", u });
 							})
-							});
+						})
 
-						}
-					})
+					}
+				// Se nem o login, nem o email, nem o cpf existirem ele modifica
+				} else {
+					bcrypt.hash(req.body.password, 12).then((result) => {
+						u.update({
+							login: login,
+							password: result,
+							email: email,
+							cpf: cpf,
+							first_name: first_name,
+							last_name: last_name,
+							endereço: endereço,
+							birthday: birthday,
+							type: type
+						})
+						.then((u) => {
+							res.json({ message: "User changed", u });
+						})
+					});
 
-				}			
+				}
+			})
+		}			
 		else{
 			res.json({ error: 'User not found' })
 			}
