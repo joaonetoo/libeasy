@@ -79,7 +79,7 @@ router.route('/users/:user_id')
 		let cpf = req.body.cpf;
 		let first_name = req.body.first_name;
 		let last_name = req.body.last_name;
-		let endereço = req.body.endereço;
+		let address = req.body.address;
 		let birthday = req.body.birthday;
 		let type = req.body.type;
 
@@ -106,7 +106,7 @@ router.route('/users/:user_id')
 								cpf: cpf,
 								first_name: first_name,
 								last_name: last_name,
-								endereço: endereço,
+								address: address,
 								birthday: birthday,
 								type: type
 							})
@@ -121,7 +121,7 @@ router.route('/users/:user_id')
 							cpf: cpf,
 							first_name: first_name,
 							last_name: last_name,
-							endereço: endereço,
+							address: address,
 							birthday: birthday,
 							type: type
 						})
@@ -132,7 +132,7 @@ router.route('/users/:user_id')
 					}
 
 				}
-				// Se nem o login, nem o email, nem o cpf existirem ele modifica
+				
 			} else {
 				res.json({ message: 'User not found' })
 
