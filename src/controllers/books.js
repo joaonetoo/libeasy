@@ -6,7 +6,7 @@ import multer from 'multer'
 
 let storage = multer.diskStorage({
     destination:(req, file, cb)=> {
-      cb(null, './uploads/images/')
+      cb(null, './uploads/images/books/')
     },
     filename:(req, file, cb) =>{
       cb(null, Date.now()+file.originalname)
@@ -25,15 +25,18 @@ router.route('/books')
               res.json(books)
         })
     })
-    .post(upload.single('imageProfile'), (req,res) => {
+    .post(upload.single('image'), (req,res) => {
         if(req.user.type == "librarian"){
             const title = req.body.title;
             const description =  req.body.description;
             const edition = req.body.edition;
             const language = req.body.language;
             const page_count = req.body.page_count
-            const imageProfile = req.file.path
-            const data = {title:title, description:description,edition:edition ,language: language, page_count: page_count,image:imageProfile}
+            let image
+            if (!(typeof req.file === "undefined")) {
+                image = req.file.path
+            }
+            const data = {title:title, description:description,edition:edition ,language: language, page_count: page_count,image:image}
             Book.create(data).then((book) => {
                 res.json({message: 'Book added'});
             })          
@@ -53,16 +56,20 @@ router.route('/books/:book_id')
             res.json({error:'Access denied'})
         }
     })
-    .put(upload.single('imageProfile'),(req,res) => {
+    .put(upload.single('image'),(req,res) => {
         if(req.user.type == "librarian"){
             Book.findById(req.params.book_id).then(book => {
                 if(book){
-                    book.update({title: req.body.title,
-                    description: req.body.description,
-                    edition: req.body.edition,
-                    language: req.body.language,
-                    page_count: req.body.page_count,
-                    image: req.file.path}).then(() => {
+                    const title = req.body.title;
+                    const description =  req.body.description;
+                    const edition = req.body.edition;
+                    const language = req.body.language;
+                    const page_count = req.body.page_count
+                    let image
+                    if (!(typeof req.file === "undefined")) {
+                        image = req.file.path
+                    }                    const data = {title:title, description:description,edition:edition ,language: language, page_count: page_count,image:image}
+                    book.update(data).then(() => {
                         res.json(book)
                     })
                 }else{
