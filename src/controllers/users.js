@@ -131,7 +131,7 @@ router.route('/users/:user_id')
 					}
 
 				}
-				// Se nem o login, nem o email, nem o cpf existirem ele modifica
+				
 			} else {
 				res.json({ message: 'User not found' })
 
