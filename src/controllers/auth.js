@@ -18,11 +18,10 @@ router.route('/auth')
 				res.json({message: 'User authenticated', token:token});} 
 			else { // password is wrong
 				res.json({message: 'Wrong password'});}
-			});}
-	 	else {
+			});
+		} else {
 			res.json({message: 'User not found'});}
 	});
 });
-
 
 export default router;

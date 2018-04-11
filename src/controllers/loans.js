@@ -4,6 +4,7 @@ import {User} from'../models/user'
 import {Material} from '../models/material'
 import {Loan} from '../models/loan';
 import {Fine} from '../models/fine';
+import {Reservation} from '../models/reservation'
 import Request from 'request';
 import Sequelize from 'sequelize';
 import {checkToken} from './middlewares'
@@ -30,17 +31,35 @@ router.route ('/loans')
 			if(!user) {
 				res.json({ message: s.userNotFound });
 			} else {
-				Book.findOne({where:{id: bookId}, attributes: ['id']}).then(book => {
-					Material.findOne({where:{id: materialId}, attributes: ['id']}).then(material => {
-							Loan.create({
-								final_date: final_date,
-								userId: userId,
-								bookId: bookId,
-								materialId: materialId,
-							}).then(loan => {
-								res.json({ message: s.loanAdded, loan });
-							})	
-					})
+				Reservation.findOne({where:{id: bookId}, attributes: ['bookId']}).then(reservation => {
+					if(reservation) {
+						res.json({message: s.bookReservated})
+					} else {
+						Book.findOne({where:{id: bookId}, attributes: ['id']}).then(book => {
+							Material.findOne({where:{id: materialId}, attributes: ['id']}).then(material => {
+									if(book) {
+										Loan.create({
+											final_date: final_date,
+											userId: userId,
+											bookId: bookId,
+										}).then(loan => {
+											res.json({message: s.loanAdded, loan});
+										})
+									} else if(material) {
+										Loan.create({
+											final_date: final_date,
+											userId: userId,
+											materialId: materialId
+										}).then(loan => {
+											res.json({message: s.loanAdded, loan});
+										})
+									} else {
+										res.json({message_material: s.materialNotFound, 
+											message_book: s.bookNotFound});
+									}
+							})
+						})
+					}
 				})
 			}
 		})
@@ -66,6 +85,7 @@ router.route('/loans/:loan_id')
 					delivered: delivered
 				}).then(() => {
 					let daysOverdue = parseInt(dateDiff(loan.final_date))
+					console.log("DIAAAS: "+ daysOverdue);
 					if(daysOverdue > 0) {
 						let totalAmount = fineTotalAmount(daysOverdue);
 						Fine.create({
@@ -92,7 +112,8 @@ router.route('/loans/search/:userId')
 	
 function dateDiff(finalDate) {
 	let now = new Date();
-	let diff = now.getDate() - finalDate.getDate();
+	let millisecondsPerDay = 86400000;
+	let diff = Math.round(now - finalDate)/(millisecondsPerDay);
 	return diff;
 }
 

@@ -4,7 +4,6 @@ ARQUIVO DESTINADO A CENTRALIZAÇÃO DAS STRINGS
 
 */
 
-
 export let loanNotFound = "Loan not found";
 export let loanUpdated = "Loan updated";
 export let loanAdded = "Loan added";
@@ -24,3 +23,9 @@ export let bookAdded = "Book added";
 export let materialNotFound = "Material not found";
 export let materialUpdated = "Material updated";
 export let materialAdded = "Material added";
+
+export let reservationNotFound = "Reservation not found";
+export let reservationUpdated = "Reservation updated";
+export let reservationAdded = "Reservation added";
+
+export let bookReservated = "Book is reservated";
