@@ -1,8 +1,8 @@
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-var _user = require('/home/joao/Documentos/libeasy/dist/models/user.js');
-var _loan = require('/home/joao/Documentos/libeasy/dist/models/loan.js');
-var _reservation = require('/home/joao/Documentos/libeasy/dist/models/reservation.js');
+var _user = require('./dist/models/user.js');
+var _loan = require('./dist/models/loan.js');
+var _reservation = require('./dist/models/reservation.js');
 
 _user.User.findAll().then(function (users) {
   users.forEach(function (user) {
@@ -40,7 +40,9 @@ _reservation.Reservation.findAll().then(function(reservations){
 function validateReservation(date){
   var yourDate = date
   var dateNow  = new Date()
-  if ((dateNow.getDate() - yourDate.getDate()) >= 2 ){
+  var millisecondsPerDay = 86400000;
+	var diff = Math.round(dateNow - yourDate)/(millisecondsPerDay);
+  if (diff.get >= 2 ){
       return true
   }else{
       return false
@@ -49,8 +51,10 @@ function validateReservation(date){
 
 function validateLoan(date){
   var yourDate = date
-  var dateNow  = new Date()
-  if ((dateNow.getDate() - yourDate.getDate()) > 0 ){
+  var dateNow  = new Date('2018-04-13')
+  var millisecondsPerDay = 86400000;
+	var diff = Math.round(dateNow - yourDate)/(millisecondsPerDay);
+  if (diff > 0 ){
       return true
   }else{
       return false

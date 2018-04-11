@@ -8,6 +8,8 @@ export let Book = sequelize.define('book',{
     edition: Sequelize.INTEGER,
     language: Sequelize.STRING,
     page_count: Sequelize.STRING,
+    image: Sequelize.STRING,
+    image_thumbnail: Sequelize.STRING
 
 });
 

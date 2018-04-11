@@ -2,6 +2,18 @@ import express from 'express';
 import {Book,Category,Author,BookAuthor} from'../models/book'
 import Request from 'request';
 import {checkToken} from './middlewares'
+import multer from 'multer'
+
+let storage = multer.diskStorage({
+    destination:(req, file, cb)=> {
+      cb(null, './uploads/images/')
+    },
+    filename:(req, file, cb) =>{
+      cb(null, Date.now()+file.originalname)
+    }
+  })
+
+let upload = multer({ storage: storage });
 
 let router = express.Router();
 
@@ -13,14 +25,15 @@ router.route('/books')
               res.json(books)
         })
     })
-    .post((req,res) => {
+    .post(upload.single('imageProfile'), (req,res) => {
         if(req.user.type == "librarian"){
             const title = req.body.title;
             const description =  req.body.description;
             const edition = req.body.edition;
             const language = req.body.language;
             const page_count = req.body.page_count
-            const data = {title:title, description:description,edition:edition ,language: language, page_count: page_count}
+            const imageProfile = req.file.path
+            const data = {title:title, description:description,edition:edition ,language: language, page_count: page_count,image:imageProfile}
             Book.create(data).then((book) => {
                 res.json({message: 'Book added'});
             })          
@@ -40,15 +53,16 @@ router.route('/books/:book_id')
             res.json({error:'Access denied'})
         }
     })
-    .put((req,res) => {
+    .put(upload.single('imageProfile'),(req,res) => {
         if(req.user.type == "librarian"){
             Book.findById(req.params.book_id).then(book => {
                 if(book){
                     book.update({title: req.body.title,
-                    author: req.body.author,
+                    description: req.body.description,
                     edition: req.body.edition,
                     language: req.body.language,
-                    page_count: req.body.page_count,}).then(() => {
+                    page_count: req.body.page_count,
+                    image: req.file.path}).then(() => {
                         res.json(book)
                     })
                 }else{
@@ -56,7 +70,7 @@ router.route('/books/:book_id')
                 }
             })
         }else{
-            res.json({error: 'Acess denied'})
+            res.json({error: 'Access denied'})
         }
     })
     .delete((req,res) => {
@@ -71,7 +85,7 @@ router.route('/books/:book_id')
                 }
             })
         }else{
-            res.json({error: 'Acess denied'})
+            res.json({error: 'Access denied'})
         }
     })
 
@@ -97,6 +111,7 @@ router.route('/books/search/:search_id')
                     "pageCount": value.volumeInfo.pageCount,
                     "categories": value.volumeInfo.categories,
                     "edition": value.volumeInfo.contentVersion, //contentVersion in google_api
+                    "images": value.volumeInfo.imageLinks           
                     }
                     data.push(obj);
                 
@@ -129,8 +144,9 @@ router.route('/books/create')
                             "description": y.volumeInfo.description,
                             "language": y.volumeInfo.language,
                             "page_count": y.volumeInfo.pageCount,
-                            "edition": y.volumeInfo.contentVersion //contentVersion in google_api
-                            
+                            "edition": y.volumeInfo.contentVersion, //contentVersion in google_api
+                            "image": y.volumeInfo.imageLinks.thumbnail,
+                            "image_thumbnail": y.volumeInfo.imageLinks.smallThumbnail                            
                         }
                         categories = y.volumeInfo.categories
                         authors = y.volumeInfo.authors
@@ -172,7 +188,7 @@ router.route('/books/create')
                         })
 
                     }else{
-                        res.json({message:'Book added'})
+                        res.json({message:'Book already exists'})
                     }
 
                 })

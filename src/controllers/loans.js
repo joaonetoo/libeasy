@@ -27,12 +27,12 @@ router.route ('/loans')
 		const bookId = req.body.bookId;
 		const materialId = req.body.materialId;
 
-		User.findOne({where:{id: userId}, attributes: ['id']}).then(user => {
+		User.findById(userId).then(user => {
 			if(!user) {
 				res.json({ message: s.userNotFound });
 			} else {
-				Reservation.findOne({where:{id: bookId}, attributes: ['bookId']}).then(reservation => {
-					if(reservation) {
+				Reservation.findOne({where:{bookId: bookId}}).then(reservation => {
+					if((reservation.expired == false) && (reservation.userId != req.user.id)) {
 						res.json({message: s.bookReservated})
 					} else {
 						Book.findOne({where:{id: bookId}, attributes: ['id']}).then(book => {
