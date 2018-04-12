@@ -3,6 +3,7 @@ import { User } from '../models/user';
 import Request from 'request';
 import bcrypt from 'bcrypt';
 import Sequelize from 'sequelize';
+import * as s from '../strings';
 
 let router = express.Router();
 const Op = Sequelize.Op;
@@ -36,7 +37,7 @@ router.route('/users')
 			}
 		}).then(user => {
 			if (user) {
-				res.json({ message: 'User already exists' });
+				res.json({ message: s.userExists });
 			}
 			else {
 				bcrypt.hash(req.body.password, 12).then((result) => {
@@ -52,7 +53,7 @@ router.route('/users')
 						type: type
 					})
 						.then((u) => {
-							res.json({ message: "User added", u });
+							res.json({ message: s.userAdded, u });
 						})
 				});
 			}
@@ -67,7 +68,7 @@ router.route('/users/:user_id')
 				res.json(user)
 			}
 			else {
-				res.json('User not found');
+				res.json(s.userNotFound);
 			}
 
 		})
@@ -82,17 +83,17 @@ router.route('/users/:user_id')
 		let address = req.body.address;
 		let birthday = req.body.birthday;
 		let type = req.body.type;
-		
+
 		User.findById(req.params.user_id).then(user => {
 			if (user) {
 				if (user.login == login) {
-					res.json({ message: 'Login already exists' });
+					res.json({ message: s.loginExists });
 				}
 				else if (user.cpf == cpf) {
-					res.json({ message: 'CPF already exists' });
+					res.json({ message: s.cpfExists });
 				}
 				else if (user.email == email) {
-					res.json({ message: 'Email already exists' });
+					res.json({ message: s.emailExists });
 				}
 				else {
 					if (!(typeof req.body.password === "undefined")) {
@@ -110,7 +111,7 @@ router.route('/users/:user_id')
 								type: type
 							})
 								.then(() => {
-									res.json({ message: "User changed", user });
+									res.json({ message: s.userUpdated, user });
 								})
 						})
 					} else {
@@ -125,15 +126,15 @@ router.route('/users/:user_id')
 							type: type
 						})
 							.then(() => {
-								res.json({ message: "User changed", user });
+								res.json({ message: s.userUpdated, user });
 							})
 
 					}
 
 				}
-				
+
 			} else {
-				res.json({ message: 'User not found' })
+				res.json({ message: s.userNotFound })
 
 			}
 		})
@@ -145,12 +146,12 @@ router.route('/users/:user_id')
 		User.findById(req.params.user_id).then(user => {
 			if (user) {
 				user.destroy().then(user => {
-					res.json({ message: 'User deleted' })
+					res.json({ message: s.userDeleted })
 				}
 				)
 			}
 			else {
-				res.json({ error: 'User not found' })
+				res.json({ error: s.userNotFound })
 			}
 		})
 	})
