@@ -31,7 +31,11 @@ router.route('/materials')
 router.route('/materials/:material_id')
     .get((req, res) => {
         Material.findById(req.params.material_id).then(material => {
+            if(material){
             res.json(material);
+            }else{
+                res.json({message: s.materialNotFound})
+            }
         })
     })
 

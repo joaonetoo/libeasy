@@ -12,7 +12,7 @@ router.use(checkToken)
 router.route('/ratings')
     .get((req, res) => {
         Rating.findAll({ include: [Book, User] }).then(function (ratings) {
-            res.send(ratings);
+            res.json(ratings);
         })
     })
 
@@ -22,19 +22,33 @@ router.route('/ratings')
         const star = req.body.star;
         const comment = req.body.comment;
 
-
-        Rating.create({ userId, bookId, star, comment }).then((ratings) => {
-            User.findById(userId).then(user => {
-                res.json({ message: s.ratingAdded })
-                    ;
-            })
+        User.findById(userId).then(user =>{
+            if(!user){
+                res.json({ message: s.userNotFound });
+            }else{
+                Book.findById(bookId).then(book =>{
+                    if(!book){
+                        res.json({ message: s.bookNotFound });
+                    }else{
+                        Rating.create({ userId, bookId, star, comment }).then((ratings) => {
+                            User.findById(userId).then(user => {
+                                res.json({ message: s.ratingAdded });
+                            })
+                        })
+                    }
+                })
+            }
         })
     });
 
 router.route('/ratings/:id_rating')
     .get((req, res) => {
         Rating.findById(req.params.id_rating).then(rating => {
+            if(rating){
             res.json(rating);
+            }else{
+                res.json({message: s.ratingNotFound})
+            }
         })
     })
 
@@ -47,7 +61,7 @@ router.route('/ratings/:id_rating')
                     star: req.body.star,
                     comment: req.body.comment
                 }).then(() => {
-                    res.json(rating)
+                    res.json({message: s.ratingUpdated ,rating})
                 })
             } else {
                 res.json({ error: s.ratingNotFound });
