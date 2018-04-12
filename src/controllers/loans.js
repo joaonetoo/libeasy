@@ -1,13 +1,13 @@
 import express from 'express';
-import { Book } from '../models/book'
-import { User } from '../models/user'
-import { Material } from '../models/material'
+import { Book } from '../models/book';
+import { User } from '../models/user';
+import { Material } from '../models/material';
 import { Loan } from '../models/loan';
 import { Fine } from '../models/fine';
-import { Reservation } from '../models/reservation'
+import { Reservation } from '../models/reservation';
 import Request from 'request';
 import Sequelize from 'sequelize';
-import { checkToken } from './middlewares'
+import { checkToken } from './middlewares';
 import * as s from '../strings';
 
 let router = express.Router();
@@ -89,7 +89,6 @@ router.route('/loans/:loan_id')
 					delivered: delivered
 				}).then(() => {
 					let daysOverdue = parseInt(dateDiff(loan.final_date))
-					console.log("DIAAAS: " + daysOverdue);
 					if (daysOverdue > 0) {
 						let totalAmount = fineTotalAmount(daysOverdue);
 						Fine.create({
@@ -109,7 +108,7 @@ router.route('/loans/:loan_id')
 
 router.route('/loans/search/:userId')
 	.get((req, res) => {
-		Loan.findAll({ where: { delivered: false, userId: req.params.userId } }).then(loans => {
+		Loan.findAll({ where: { userId: req.params.userId } }).then(loans => {
 			res.json(loans)
 		})
 	})
