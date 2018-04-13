@@ -56,6 +56,10 @@ export const ratingNotFound             = "Rating not found";
 export const ratingDeleted              = "Rating deleted";
 
 export const bookReservated             = "Book is reservated";
+export const borrowedBook               = "Borrowed book";
+export const borrowedMaterial           = "Borrowed material";
+export const qrCodeGenerated            = "QRCode generated";
+export const barcodeGenerated           = "Barcode generated";
 
 export const globalAccessDenied         = "Access denied";
 export const tokenNotFound              = "Token not found";

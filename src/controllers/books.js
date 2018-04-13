@@ -99,6 +99,61 @@ router.route('/books/:book_id')
         }
     })
 
+router.route('/books/qrcode/:book_id')
+    .post((req, res) => {
+        let qrcode = require('qrcode')
+        let bookId = req.params.book_id
+
+        Book.findById(bookId).then(book => {
+            if (book) {
+                qrcode.toFile('./' + bookId + '.png', bookId,
+                    function (err) {
+                        if (err) {
+                            throw err
+                        }
+
+                        res.json({ message: s.qrCodeGenerated })
+                    })
+            } else {
+                res.json({ message: s.bookNotFound })
+            }
+        })
+    })
+
+router.route('/books/barcode/:book_id')
+    .post((req, res) => {
+        Book.findById(req.params.book_id).then(book => {
+            if (book) {
+                let barcode = require('bwip-js')
+                let bookId = req.params.book_id
+                let path = './barcode' + bookId + '.png'
+
+                barcode.toBuffer({
+                    bcid: 'code128',
+                    text: bookId,
+                    scale: 3,
+                    height: 10,
+                    includetext: true,
+                    textxalign: 'center',
+                    barcolor: '000000',
+                    textcolor: '000000',
+                    backgroundcolor: 'ffffff',
+                    paddingheight: 5,
+                    paddingwidth: 5
+                }, function (err, png) {
+                    if (err) {
+                        throw err
+                    } else {
+                        toFile(path, png)
+                        res.json({ message: s.barcodeGenerated })
+                    }
+                })
+            } else {
+                res.json({ message: s.bookNotFound })
+            }
+        })
+    })
+
 
 router.route('/books/search/:search_id')
 
@@ -208,5 +263,15 @@ router.route('/books/create')
     })
 
 
-
 export default router;
+
+function toFile(path, png) {
+    let fs = require('fs')
+
+    fs.writeFile(path, png, function (err) {
+        if (err) {
+            throw err;
+        }
+    });
+}
+

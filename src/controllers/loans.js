@@ -32,36 +32,53 @@ router.route('/loans')
 				res.json({ message: s.userNotFound });
 			} else {
 				Reservation.findOne({ where: { bookId: bookId } }).then(reservation => {
-					if (reservation) {
-						if ((reservation.expired == false) && (reservation.userId != req.user.id)) {
-							res.json({ message: s.bookReservated })
-						}
-					}
-
-					Book.findOne({ where: { id: bookId }, attributes: ['id'] }).then(book => {
-						Material.findOne({ where: { id: materialId }, attributes: ['id'] }).then(material => {
-							if (book) {
-								Loan.create({
-									final_date: final_date,
-									userId: userId,
-									bookId: bookId,
-								}).then(loan => {
-									res.json({ message: s.loanAdded, loan });
-								})
-							} else if (material) {
-								Loan.create({
-									final_date: final_date,
-									userId: userId,
-									materialId: materialId
-								}).then(loan => {
-									res.json({ message: s.loanAdded, loan });
-								})
-							} else {
-								res.json({
-									message_material: s.materialNotFound,
-									message_book: s.bookNotFound
-								});
+					Loan.findOne({ where: { bookId: bookId } }).then(loanbook => {
+						Loan.findOne({ where: { materialId: materialId } }).then(loanmaterial => {
+							console.log(loanbook)
+							if(loanbook) {
+								if(!loanbook.delivered) {
+									res.json({ message: s.borrowedBook })
+								}
 							}
+
+							if(loanmaterial) {
+								if(!loanmaterial.delivered) {
+									res.json({ message: s.borrowedMaterial })
+								}
+							}
+	
+							if (reservation) {
+								if ((reservation.expired == false) && (reservation.userId != req.user.id)) {
+									res.json({ message: s.bookReservated })
+								}
+							}
+
+							Book.findOne({ where: { id: bookId }, attributes: ['id'] }).then(book => {
+								Material.findOne({ where: { id: materialId }, attributes: ['id'] }).then(material => {
+									if (book) {
+										Loan.create({
+											final_date: final_date,
+											userId: userId,
+											bookId: bookId,
+										}).then(loan => {
+											res.json({ message: s.loanAdded, loan });
+										})
+									} else if (material) {
+										Loan.create({
+											final_date: final_date,
+											userId: userId,
+											materialId: materialId
+										}).then(loan => {
+											res.json({ message: s.loanAdded, loan });
+										})
+									} else {
+										res.json({
+											message_material: s.materialNotFound,
+											message_book: s.bookNotFound
+										});
+									}
+								})
+							})
 						})
 					})
 				})
