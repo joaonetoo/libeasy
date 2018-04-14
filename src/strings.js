@@ -60,6 +60,7 @@ export const borrowedBook               = "Borrowed book";
 export const borrowedMaterial           = "Borrowed material";
 export const qrCodeGenerated            = "QRCode generated";
 export const barcodeGenerated           = "Barcode generated";
+export const barcodeNotDetected         = "Not detected";
 
 export const globalAccessDenied         = "Access denied";
 export const tokenNotFound              = "Token not found";

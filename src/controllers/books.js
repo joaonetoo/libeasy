@@ -99,14 +99,14 @@ router.route('/books/:book_id')
         }
     })
 
-router.route('/books/qrcode/:book_id')
+router.route('/books/qrcode-generator/:book_id')
     .post((req, res) => {
         let qrcode = require('qrcode')
         let bookId = req.params.book_id
 
         Book.findById(bookId).then(book => {
             if (book) {
-                qrcode.toFile('./' + bookId + '.png', bookId,
+                qrcode.toFile('./qrcode' + bookId + '.png', bookId,
                     function (err) {
                         if (err) {
                             throw err
@@ -120,7 +120,93 @@ router.route('/books/qrcode/:book_id')
         })
     })
 
-router.route('/books/barcode/:book_id')
+router.route('/books/qrcode-reader/:qrcodeimagename')
+    .post((req, res) => {
+        
+        //JIMP é uma biblioteca para processamento de imagem
+        let Jimp = require('jimp')
+        let QrCode = require('qrcode-reader')
+        
+        let path = './'+req.params.qrcodeimagename
+        
+        //Cria objeto qrcode
+        let qr = new QrCode()
+
+        /*
+            Define a chamada de volta da função decode
+            que apos a img ser decodificada o valor sera tratado
+            nessa função.
+        */
+        qr.callback = function(err, value) {
+            if(err) {
+                res.json({error: err})
+            }
+            
+            let bookId = value.result
+            Book.findById(bookId).then(book => {
+                if(book) {
+                    res.json({Book: book})
+                } else {
+                    res.json({message: s.bookNotFound})
+                }
+            })
+
+        }
+
+        /*
+            Abre o arquivo do caminho(path) passado
+            se for um arquivo válido o objeto qrcode
+            ira decodificar a img e facher a chamada do callback
+            passando o valor decodificado.
+        */
+        Jimp.read(path, function(err, image) {
+            if(err) {
+                res.json({error: err.toString()})
+            } else {
+                qr.decode(image.bitmap)
+            }
+        })
+    })
+
+router.route('/books/barcode-reader/:barcodeimagename')
+    .post((req, res) => {
+
+        let Quagga = require('quagga').default //Reader
+        let path = './'+req.params.barcodeimagename //Caminho da img
+
+        //Decodificar uma img
+        Quagga.decodeSingle({
+            src: path,
+            numOfWorkers: 0,
+            locate: true, //Localizador
+            locator: {
+                halfSample: true, //Ideial manter ligado para reduzir o tempo de processamento
+                patchSize: 'x-large', //Define o tamanho do grid de busca
+            },
+            inputStream: {
+                size: 1600 //Tamanho maximo da img 
+            },
+            decoder: {
+                readers: ["code_128_reader"] //Tipo de codificacao
+            },
+        }, function(result) {
+            if(result.codeResult) {
+                let bookId = result.codeResult.code
+                Book.findById(bookId).then(book => {
+                    if(book) {
+                        res.json({book: book})
+                    } else {
+                        res.json({message: s.bookNotFound})
+                    }
+                })
+            } else {
+                res.json({error: s.barcodeNotDetected})
+            }
+        });
+
+    })
+
+router.route('/books/barcode-generator/:book_id')
     .post((req, res) => {
         Book.findById(req.params.book_id).then(book => {
             if (book) {
@@ -131,15 +217,13 @@ router.route('/books/barcode/:book_id')
                 barcode.toBuffer({
                     bcid: 'code128',
                     text: bookId,
-                    scale: 3,
-                    height: 10,
                     includetext: true,
                     textxalign: 'center',
                     barcolor: '000000',
                     textcolor: '000000',
                     backgroundcolor: 'ffffff',
-                    paddingheight: 5,
-                    paddingwidth: 5
+                    paddingheight:20,
+                    paddingwidth: 20,
                 }, function (err, png) {
                     if (err) {
                         throw err
@@ -274,4 +358,3 @@ function toFile(path, png) {
         }
     });
 }
-
