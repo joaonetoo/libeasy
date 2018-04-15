@@ -122,13 +122,13 @@ router.route('/books/qrcode-generator/:book_id')
 
 router.route('/books/qrcode-reader/:qrcodeimagename')
     .post((req, res) => {
-        
+
         //JIMP é uma biblioteca para processamento de imagem
         let Jimp = require('jimp')
         let QrCode = require('qrcode-reader')
-        
-        let path = './'+req.params.qrcodeimagename
-        
+
+        let path = './' + req.params.qrcodeimagename
+
         //Cria objeto qrcode
         let qr = new QrCode()
 
@@ -137,17 +137,17 @@ router.route('/books/qrcode-reader/:qrcodeimagename')
             que apos a img ser decodificada o valor sera tratado
             nessa função.
         */
-        qr.callback = function(err, value) {
-            if(err) {
-                res.json({error: err.toString()})
+        qr.callback = function (err, value) {
+            if (err) {
+                res.json({ error: err.toString() })
             }
-            
+
             let bookId = value.result
             Book.findById(bookId).then(book => {
-                if(book) {
-                    res.json({Book: book})
+                if (book) {
+                    res.json({ Book: book })
                 } else {
-                    res.json({message: s.bookNotFound})
+                    res.json({ message: s.bookNotFound })
                 }
             })
 
@@ -159,9 +159,9 @@ router.route('/books/qrcode-reader/:qrcodeimagename')
             ira decodificar a img e realizar a chamada do callback
             passando o valor decodificado.
         */
-        Jimp.read(path, function(err, image) {
-            if(err) {
-                res.json({error: s.fileDoesNotExists})
+        Jimp.read(path, function (err, image) {
+            if (err) {
+                res.json({ error: s.fileDoesNotExists })
             } else {
                 qr.decode(image.bitmap)
             }
@@ -172,13 +172,13 @@ router.route('/books/barcode-reader/:barcodeimagename')
     .post((req, res) => {
 
         let Quagga = require('quagga').default //Reader
-        let path = './'+req.params.barcodeimagename //Caminho da img
+        let path = './' + req.params.barcodeimagename //Caminho da img
         let fs = require('fs')
 
         //Checagem se arquivo existe ou nao
         fs.access(path, (err) => {
-            if(err) {
-                res.json({error: s.fileDoesNotExists})
+            if (err) {
+                res.json({ error: s.fileDoesNotExists })
             }
         })
 
@@ -197,18 +197,22 @@ router.route('/books/barcode-reader/:barcodeimagename')
             decoder: {
                 readers: ["code_128_reader"] //Tipo de codificacao
             },
-        }, function(result) {
-            if(result.codeResult) {
-                let bookId = result.codeResult.code
-                Book.findById(bookId).then(book => {
-                    if(book) {
-                        res.json({book: book})
-                    } else {
-                        res.json({message: s.bookNotFound})
-                    }
-                })
+        }, function (result) {
+            if (result) {
+                if (result.codeResult) {
+                    let bookId = result.codeResult.code
+                    Book.findById(bookId).then(book => {
+                        if (book) {
+                            res.json({ book: book })
+                        } else {
+                            res.json({ message: s.bookNotFound })
+                        }
+                    })
+                } else {
+                    res.json({ error: s.barcodeNotDetected })
+                }
             } else {
-                res.json({error: s.barcodeNotDetected})
+                res.json({ error: s.invalidFile })
             }
         });
     })
@@ -229,7 +233,7 @@ router.route('/books/barcode-generator/:book_id')
                     barcolor: '000000',
                     textcolor: '000000',
                     backgroundcolor: 'ffffff',
-                    paddingheight:20,
+                    paddingheight: 20,
                     paddingwidth: 20,
                 }, function (err, png) {
                     if (err) {
