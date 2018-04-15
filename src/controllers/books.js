@@ -142,15 +142,16 @@ router.route('/books/qrcode-reader/:qrcodeimagename')
                 res.json({ error: err.toString() })
             }
 
-            let bookId = value.result
-            Book.findById(bookId).then(book => {
-                if (book) {
-                    res.json({ Book: book })
-                } else {
-                    res.json({ message: s.bookNotFound })
-                }
-            })
-
+            if(value) {
+                let bookId = value.result
+                Book.findById(bookId).then(book => {
+                    if (book) {
+                        res.json({ Book: book })
+                    } else {
+                        res.json({ message: s.bookNotFound })
+                    }
+                })
+            }
         }
 
         /*
@@ -161,9 +162,13 @@ router.route('/books/qrcode-reader/:qrcodeimagename')
         */
         Jimp.read(path, function (err, image) {
             if (err) {
-                res.json({ error: s.fileDoesNotExists })
+                res.json({ error: err.toString() })
             } else {
-                qr.decode(image.bitmap)
+                if(image) {
+                    qr.decode(image.bitmap)
+                } else {
+                    res.json({error: s.invalidFile})
+                }   
             }
         })
     })
@@ -173,48 +178,52 @@ router.route('/books/barcode-reader/:barcodeimagename')
 
         let Quagga = require('quagga').default //Reader
         let path = './' + req.params.barcodeimagename //Caminho da img
+        let isImage = require('is-image')
         let fs = require('fs')
 
         //Checagem se arquivo existe ou nao
-        fs.access(path, (err) => {
-            if (err) {
-                res.json({ error: s.fileDoesNotExists })
-            }
-        })
-
-        //Decodificar uma img caso ela exista
-        Quagga.decodeSingle({
-            src: path,
-            numOfWorkers: 0,
-            locate: true, //Localizador
-            locator: {
-                halfSample: true, //Ideial manter ligado para reduzir o tempo de processamento
-                patchSize: 'x-large', //Define o tamanho do grid de busca
-            },
-            inputStream: {
-                size: 1600 //Tamanho maximo da img 
-            },
-            decoder: {
-                readers: ["code_128_reader"] //Tipo de codificacao
-            },
-        }, function (result) {
-            if (result) {
-                if (result.codeResult) {
-                    let bookId = result.codeResult.code
-                    Book.findById(bookId).then(book => {
-                        if (book) {
-                            res.json({ book: book })
+        if(fs.existsSync(path)) {
+            if(isImage(path)) {
+                //Decodificar uma img caso ela exista
+                Quagga.decodeSingle({
+                    src: path,
+                    numOfWorkers: 0,
+                    locate: true, //Localizador
+                    locator: {
+                        halfSample: true, //Ideial manter ligado para reduzir o tempo de processamento
+                        patchSize: 'x-large', //Define o tamanho do grid de busca
+                    },
+                    inputStream: {
+                        size: 1600 //Tamanho maximo da img 
+                    },
+                    decoder: {
+                        readers: ["code_128_reader"] //Tipo de codificacao
+                    },
+                }, function (result) {
+                    if(result) {
+                        if (result.codeResult) {
+                            let bookId = result.codeResult.code
+                            Book.findById(bookId).then(book => {
+                                if (book) {
+                                    res.json({ book: book })
+                                } else {
+                                    res.json({ message: s.bookNotFound })
+                                }
+                            })
                         } else {
-                            res.json({ message: s.bookNotFound })
+                            res.json({ error: s.barcodeNotDetected })
                         }
-                    })
-                } else {
-                    res.json({ error: s.barcodeNotDetected })
-                }
+                    } else {
+                        res.json({error: s.barcodeNotDetected})
+                    }
+                });
             } else {
-                res.json({ error: s.invalidFile })
+                res.json({ error: s.isNotImage })
             }
-        });
+        } else {
+            res.json({error: s.fileDoesNotExists})
+        }
+        
     })
 
 router.route('/books/barcode-generator/:book_id')

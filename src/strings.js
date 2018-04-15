@@ -63,6 +63,7 @@ export const barcodeGenerated           = "Barcode generated";
 export const barcodeNotDetected         = "Not detected";
 export const fileDoesNotExists          = "File does not exists";
 export const invalidFile                = "Invalid file";
+export const isNotImage                 = "It's not an image file";
 
 export const globalAccessDenied         = "Access denied";
 export const tokenNotFound              = "Token not found";
