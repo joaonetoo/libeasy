@@ -139,7 +139,7 @@ router.route('/books/qrcode-reader/:qrcodeimagename')
         */
         qr.callback = function(err, value) {
             if(err) {
-                res.json({error: err})
+                res.json({error: err.toString()})
             }
             
             let bookId = value.result
@@ -156,12 +156,12 @@ router.route('/books/qrcode-reader/:qrcodeimagename')
         /*
             Abre o arquivo do caminho(path) passado
             se for um arquivo válido o objeto qrcode
-            ira decodificar a img e facher a chamada do callback
+            ira decodificar a img e realizar a chamada do callback
             passando o valor decodificado.
         */
         Jimp.read(path, function(err, image) {
             if(err) {
-                res.json({error: err.toString()})
+                res.json({error: s.fileDoesNotExists})
             } else {
                 qr.decode(image.bitmap)
             }
@@ -173,8 +173,16 @@ router.route('/books/barcode-reader/:barcodeimagename')
 
         let Quagga = require('quagga').default //Reader
         let path = './'+req.params.barcodeimagename //Caminho da img
+        let fs = require('fs')
 
-        //Decodificar uma img
+        //Checagem se arquivo existe ou nao
+        fs.access(path, (err) => {
+            if(err) {
+                res.json({error: s.fileDoesNotExists})
+            }
+        })
+
+        //Decodificar uma img caso ela exista
         Quagga.decodeSingle({
             src: path,
             numOfWorkers: 0,
@@ -203,7 +211,6 @@ router.route('/books/barcode-reader/:barcodeimagename')
                 res.json({error: s.barcodeNotDetected})
             }
         });
-
     })
 
 router.route('/books/barcode-generator/:book_id')
@@ -345,7 +352,6 @@ router.route('/books/create')
             res.json({ error: s.globalAccessDenied })
         }
     })
-
 
 export default router;
 
