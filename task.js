@@ -39,10 +39,10 @@ _reservation.Reservation.findAll().then(function(reservations){
 
 function validateReservation(date){
   var yourDate = date
-  var dateNow  = new Date()
+  var dateNow  = new Date('2018-04-29')
   var millisecondsPerDay = 86400000;
-	var diff = Math.round(dateNow - yourDate)/(millisecondsPerDay);
-  if (diff.get >= 2 ){
+  var diff = Math.round(dateNow - yourDate)/(millisecondsPerDay);
+  if (diff >= 2 ){
       return true
   }else{
       return false
@@ -51,7 +51,7 @@ function validateReservation(date){
 
 function validateLoan(date){
   var yourDate = date
-  var dateNow  = new Date('2018-04-13')
+  var dateNow  = new Date('2018-04-21')
   var millisecondsPerDay = 86400000;
 	var diff = Math.round(dateNow - yourDate)/(millisecondsPerDay);
   if (diff > 0 ){

@@ -22,10 +22,11 @@ router.route('/loans')
 	})
 
 	.post((req, res) => {
-		const final_date = req.body.final_date;
 		const userId = req.body.userId;
 		const bookId = req.body.bookId;
 		const materialId = req.body.materialId;
+		let ms = new Date().getTime() + 86400000*15;
+		let final_date = new Date(ms);
 
 		User.findById(userId).then(user => {
 			if (!user) {
@@ -34,7 +35,6 @@ router.route('/loans')
 				Reservation.findOne({ where: { bookId: bookId } }).then(reservation => {
 					Loan.findOne({ where: { bookId: bookId } }).then(loanbook => {
 						Loan.findOne({ where: { materialId: materialId } }).then(loanmaterial => {
-							console.log(loanbook)
 							if(loanbook) {
 								if(!loanbook.delivered) {
 									res.json({ message: s.borrowedBook })
@@ -50,9 +50,35 @@ router.route('/loans')
 							if (reservation) {
 								if ((reservation.expired == false) && (reservation.userId != req.user.id)) {
 									res.json({ message: s.bookReservated })
+								}else{
+									Book.findOne({ where: { id: bookId }, attributes: ['id'] }).then(book => {
+										Material.findOne({ where: { id: materialId }, attributes: ['id'] }).then(material => {
+											if (book) {
+												Loan.create({
+													final_date: final_date,
+													userId: userId,
+													bookId: bookId,
+												}).then(loan => {
+													res.json({ message: s.loanAdded, loan });
+												})
+											} else if (material) {
+												Loan.create({
+													final_date: final_date,
+													userId: userId,
+													materialId: materialId
+												}).then(loan => {
+													res.json({ message: s.loanAdded, loan });
+												})
+											} else {
+												res.json({
+													message_material: s.materialNotFound,
+													message_book: s.bookNotFound
+												});
+											}
+										})
+									})
 								}
-							}
-
+							}else{
 							Book.findOne({ where: { id: bookId }, attributes: ['id'] }).then(book => {
 								Material.findOne({ where: { id: materialId }, attributes: ['id'] }).then(material => {
 									if (book) {
@@ -79,6 +105,8 @@ router.route('/loans')
 									}
 								})
 							})
+						}
+
 						})
 					})
 				})
@@ -131,7 +159,7 @@ router.route('/loans/search/:userId')
 	})
 
 function dateDiff(finalDate) {
-	let now = new Date();
+	let now = new Date('2018-05-28');
 	let millisecondsPerDay = 86400000;
 	let diff = Math.round(now - finalDate) / (millisecondsPerDay);
 	return diff;

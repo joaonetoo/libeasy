@@ -99,164 +99,6 @@ router.route('/books/:book_id')
         }
     })
 
-router.route('/books/qrcode-generator/:book_id')
-    .post((req, res) => {
-        let qrcode = require('qrcode')
-        let bookId = req.params.book_id
-
-        Book.findById(bookId).then(book => {
-            if (book) {
-                qrcode.toFile('./qrcode' + bookId + '.png', bookId,
-                    function (err) {
-                        if (err) {
-                            throw err
-                        }
-
-                        res.json({ message: s.qrCodeGenerated })
-                    })
-            } else {
-                res.json({ message: s.bookNotFound })
-            }
-        })
-    })
-
-router.route('/books/qrcode-reader/:qrcodeimagename')
-    .post((req, res) => {
-
-        //JIMP é uma biblioteca para processamento de imagem
-        let Jimp = require('jimp')
-        let QrCode = require('qrcode-reader')
-
-        let path = './' + req.params.qrcodeimagename
-
-        //Cria objeto qrcode
-        let qr = new QrCode()
-
-        /*
-            Define a chamada de volta da função decode
-            que apos a img ser decodificada o valor sera tratado
-            nessa função.
-        */
-        qr.callback = function (err, value) {
-            if (err) {
-                res.json({ error: err.toString() })
-            }
-
-            if(value) {
-                let bookId = value.result
-                Book.findById(bookId).then(book => {
-                    if (book) {
-                        res.json({ Book: book })
-                    } else {
-                        res.json({ message: s.bookNotFound })
-                    }
-                })
-            }
-        }
-
-        /*
-            Abre o arquivo do caminho(path) passado
-            se for um arquivo válido o objeto qrcode
-            ira decodificar a img e realizar a chamada do callback
-            passando o valor decodificado.
-        */
-        Jimp.read(path, function (err, image) {
-            if (err) {
-                res.json({ error: err.toString() })
-            } else {
-                if(image) {
-                    qr.decode(image.bitmap)
-                } else {
-                    res.json({error: s.invalidFile})
-                }   
-            }
-        })
-    })
-
-router.route('/books/barcode-reader/:barcodeimagename')
-    .post((req, res) => {
-
-        let Quagga = require('quagga').default //Reader
-        let path = './' + req.params.barcodeimagename //Caminho da img
-        let isImage = require('is-image')
-        let fs = require('fs')
-
-        //Checagem se arquivo existe ou nao
-        if(fs.existsSync(path)) {
-            if(isImage(path)) {
-                //Decodificar uma img caso ela exista
-                Quagga.decodeSingle({
-                    src: path,
-                    numOfWorkers: 0,
-                    locate: true, //Localizador
-                    locator: {
-                        halfSample: true, //Ideial manter ligado para reduzir o tempo de processamento
-                        patchSize: 'x-large', //Define o tamanho do grid de busca
-                    },
-                    inputStream: {
-                        size: 1600 //Tamanho maximo da img 
-                    },
-                    decoder: {
-                        readers: ["code_128_reader"] //Tipo de codificacao
-                    },
-                }, function (result) {
-                    if(result) {
-                        if (result.codeResult) {
-                            let bookId = result.codeResult.code
-                            Book.findById(bookId).then(book => {
-                                if (book) {
-                                    res.json({ book: book })
-                                } else {
-                                    res.json({ message: s.bookNotFound })
-                                }
-                            })
-                        } else {
-                            res.json({ error: s.barcodeNotDetected })
-                        }
-                    } else {
-                        res.json({error: s.barcodeNotDetected})
-                    }
-                });
-            } else {
-                res.json({ error: s.isNotImage })
-            }
-        } else {
-            res.json({error: s.fileDoesNotExists})
-        }
-        
-    })
-
-router.route('/books/barcode-generator/:book_id')
-    .post((req, res) => {
-        Book.findById(req.params.book_id).then(book => {
-            if (book) {
-                let barcode = require('bwip-js')
-                let bookId = req.params.book_id
-                let path = './barcode' + bookId + '.png'
-
-                barcode.toBuffer({
-                    bcid: 'code128',
-                    text: bookId,
-                    includetext: true,
-                    textxalign: 'center',
-                    barcolor: '000000',
-                    textcolor: '000000',
-                    backgroundcolor: 'ffffff',
-                    paddingheight: 20,
-                    paddingwidth: 20,
-                }, function (err, png) {
-                    if (err) {
-                        throw err
-                    } else {
-                        toFile(path, png)
-                        res.json({ message: s.barcodeGenerated })
-                    }
-                })
-            } else {
-                res.json({ message: s.bookNotFound })
-            }
-        })
-    })
 
 
 router.route('/books/search/:search_id')
@@ -365,6 +207,189 @@ router.route('/books/create')
             res.json({ error: s.globalAccessDenied })
         }
     })
+
+    let qrStorage = multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, './uploads/images/books/qrcodes/readers')
+        },
+        filename: (req, file, cb) => {
+            cb(null, Date.now() + file.originalname)
+        }
+    })
+    
+    let barcodeStorage = multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, './uploads/images/books/barcodes/readers')
+        },
+        filename: (req, file, cb) => {
+            cb(null, Date.now() + file.originalname)
+        }
+    })
+    
+    let uploadBarcode = multer({storage: barcodeStorage})
+    
+    let uploadQrcode = multer({storage: qrStorage})
+    
+    
+router.route('/books/qrcode-generator/:book_id')
+    .post((req, res) => {
+        let qrcode = require('qrcode')
+        let bookId = req.params.book_id
+
+        Book.findById(bookId).then(book => {
+            if (book) {
+                qrcode.toFile('./uploads/images/books/qrcodes/qrcode' + bookId + '.png', bookId,
+                    function (err) {
+                        if (err) {
+                            throw err
+                        }
+
+                        res.json({ message: s.qrCodeGenerated })
+                    })
+            } else {
+                res.json({ message: s.bookNotFound })
+            }
+        })
+    })
+
+router.route('/books/qrcode-reader')
+    .post(uploadQrcode.single('image'),(req, res) => {
+
+        //JIMP é uma biblioteca para processamento de imagem
+        let Jimp = require('jimp')
+        let QrCode = require('qrcode-reader')
+
+        let path = req.file.path
+
+        //Cria objeto qrcode
+        let qr = new QrCode()
+
+        /*
+            Define a chamada de volta da função decode
+            que apos a img ser decodificada o valor sera tratado
+            nessa função.
+        */
+        qr.callback = function (err, value) {
+            if (err) {
+                res.json({ error: err.toString() })
+            }
+
+            if(value) {
+                let bookId = value.result
+                Book.findById(bookId).then(book => {
+                    if (book) {
+                        res.json({ Book: book })
+                    } else {
+                        res.json({ message: s.bookNotFound })
+                    }
+                })
+            }
+        }
+
+        /*
+            Abre o arquivo do caminho(path) passado
+            se for um arquivo válido o objeto qrcode
+            ira decodificar a img e realizar a chamada do callback
+            passando o valor decodificado.
+        */
+        Jimp.read(path, function (err, image) {
+            if (err) {
+                res.json({ error: err.toString() })
+            } else {
+                if(image) {
+                    qr.decode(image.bitmap)
+                } else {
+                    res.json({error: s.invalidFile})
+                }   
+            }
+        })
+    })
+
+router.route('/books/barcode-reader')
+    .post(uploadBarcode.single('image'),(req, res) => {
+
+        let Quagga = require('quagga').default //Reader
+        let path = req.file.path //Caminho da img
+        let isImage = require('is-image')
+        let fs = require('fs')
+
+        //Checagem se arquivo existe ou nao
+        if(fs.existsSync(path)) {
+            if(isImage(path)) {
+                //Decodificar uma img caso ela exista
+                Quagga.decodeSingle({
+                    src: path,
+                    numOfWorkers: 0,
+                    locate: true, //Localizador
+                    locator: {
+                        halfSample: true, //Ideial manter ligado para reduzir o tempo de processamento
+                        patchSize: 'x-large', //Define o tamanho do grid de busca
+                    },
+                    inputStream: {
+                        size: 1600 //Tamanho maximo da img 
+                    },
+                    decoder: {
+                        readers: ["code_128_reader"] //Tipo de codificacao
+                    },
+                }, function (result) {
+                    if(result) {
+                        if (result.codeResult) {
+                            let bookId = result.codeResult.code
+                            Book.findById(bookId).then(book => {
+                                if (book) {
+                                    res.json({ book: book })
+                                } else {
+                                    res.json({ message: s.bookNotFound })
+                                }
+                            })
+                        } else {
+                            res.json({ error: s.barcodeNotDetected })
+                        }
+                    } else {
+                        res.json({error: s.barcodeNotDetected})
+                    }
+                });
+            } else {
+                res.json({ error: s.isNotImage })
+            }
+        } else {
+            res.json({error: s.fileDoesNotExists})
+        }
+        
+    })
+
+router.route('/books/barcode-generator/:book_id')
+    .post((req, res) => {
+        Book.findById(req.params.book_id).then(book => {
+            if (book) {
+                let barcode = require('bwip-js')
+                let bookId = req.params.book_id
+                let path = './uploads/images/books/barcodes/barcode' + bookId + '.png'
+
+                barcode.toBuffer({
+                    bcid: 'code128',
+                    text: bookId,
+                    includetext: true,
+                    textxalign: 'center',
+                    barcolor: '000000',
+                    textcolor: '000000',
+                    backgroundcolor: 'ffffff',
+                    paddingheight: 20,
+                    paddingwidth: 20,
+                }, function (err, png) {
+                    if (err) {
+                        throw err
+                    } else {
+                        toFile(path, png)
+                        res.json({ message: s.barcodeGenerated })
+                    }
+                })
+            } else {
+                res.json({ message: s.bookNotFound })
+            }
+        })
+    })
+
 
 export default router;
 
