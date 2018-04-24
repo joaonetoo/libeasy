@@ -92,7 +92,7 @@ router.route('/fines/search/:userId')
     })
 
 router.route('/fines/generateboleto/:user_id')
-    .post((req, res) => {
+    .get((req, res) => {
         User.findById(req.params.user_id).then((user) => {
             let firstName = capitalizeFirstLetter(user.first_name)
             let lastName = capitalizeFirstLetter(user.last_name)
@@ -142,7 +142,14 @@ function renderBoleto(res, boleto) {
             if (err) {
                 res.json({ error: err })
             } else {
-                res.json({ message: "Boleto gerado com sucesso." })
+                let pdf = require('html-pdf')
+                let options = {
+                    width: '700px',
+                    height: '1000px'
+                }
+                pdf.create(html, options).toBuffer((err, buffer) => {
+                    res.end(buffer)
+                })
             }
         })
     });
