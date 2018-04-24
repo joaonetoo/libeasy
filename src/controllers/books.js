@@ -210,7 +210,14 @@ router.route('/books/create')
 
     let qrStorage = multer.diskStorage({
         destination: (req, file, cb) => {
-            cb(null, './uploads/images/books/qrcodes/readers')
+            let path = './uploads/images/books/qrcodes/readers';
+            let fs = require('fs')
+            
+            if(!fs.existsSync(path)) {
+                fs.mkdirSync(path);
+            }
+
+            cb(null, path);
         },
         filename: (req, file, cb) => {
             cb(null, Date.now() + file.originalname)
@@ -219,7 +226,14 @@ router.route('/books/create')
     
     let barcodeStorage = multer.diskStorage({
         destination: (req, file, cb) => {
-            cb(null, './uploads/images/books/barcodes/readers')
+            let path = './uploads/images/books/barcodes/readers';
+            let fs = require('fs')
+            
+            if(!fs.existsSync(path)) {
+                fs.mkdirSync(path);
+            }
+
+            cb(null, path);
         },
         filename: (req, file, cb) => {
             cb(null, Date.now() + file.originalname)
@@ -232,19 +246,21 @@ router.route('/books/create')
     
     
 router.route('/books/qrcode-generator/:book_id')
-    .post((req, res) => {
+    .get((req, res) => {
         let qrcode = require('qrcode')
         let bookId = req.params.book_id
 
         Book.findById(bookId).then(book => {
             if (book) {
-                qrcode.toFile('./uploads/images/books/qrcodes/qrcode' + bookId + '.png', bookId,
+                let path = './uploads/images/books/qrcodes/qrcode' + bookId + '.png';
+                let resolve = require('path');
+                let absolutePath = resolve.resolve(path);
+                qrcode.toFile(path, bookId,
                     function (err) {
                         if (err) {
-                            throw err
+                            throw err;
                         }
-
-                        res.json({ message: s.qrCodeGenerated })
+                        res.sendFile(absolutePath);
                     })
             } else {
                 res.json({ message: s.bookNotFound })
@@ -359,12 +375,16 @@ router.route('/books/barcode-reader')
     })
 
 router.route('/books/barcode-generator/:book_id')
-    .post((req, res) => {
+    .get((req, res) => {
         Book.findById(req.params.book_id).then(book => {
             if (book) {
                 let barcode = require('bwip-js')
                 let bookId = req.params.book_id
-                let path = './uploads/images/books/barcodes/barcode' + bookId + '.png'
+
+                let path = './uploads/images/books/barcodes/';
+                let filename = 'barcode' + bookId + '.png';
+                let resolve = require('path');
+                let absolutePath = resolve.resolve(path+filename);
 
                 barcode.toBuffer({
                     bcid: 'code128',
@@ -380,8 +400,8 @@ router.route('/books/barcode-generator/:book_id')
                     if (err) {
                         throw err
                     } else {
-                        toFile(path, png)
-                        res.json({ message: s.barcodeGenerated })
+                        toFile(path, filename, png)
+                        res.sendFile(absolutePath)
                     }
                 })
             } else {
@@ -393,12 +413,18 @@ router.route('/books/barcode-generator/:book_id')
 
 export default router;
 
-function toFile(path, png) {
+function toFile(path, filename, png) {
     let fs = require('fs')
 
-    fs.writeFile(path, png, function (err) {
+    let resolve = require('path')
+    let absolutePath = resolve.resolve(path);
+    if(!fs.existsSync(absolutePath)) {
+        fs.mkdirSync(absolutePath);
+    }
+
+    fs.writeFileSync(path+filename, png, function (err) {
         if (err) {
-            throw err;
+            throw err
         }
     });
 }
