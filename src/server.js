@@ -9,7 +9,7 @@ import routesRating from './controllers/ratings';
 import routesLoan from './controllers/loans';
 import routesFine from './controllers/fines';
 import routesReservation from './controllers/reservations';
-
+import cors from 'cors'
 import bodyParser from 'body-parser';
 
 
@@ -19,6 +19,8 @@ let app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(bodyParser.json());
+
+app.use(cors());
 
 app.use('/',routesUser);
 app.use('/',routesAuth);

@@ -4,18 +4,29 @@ import Request from 'request';
 import bcrypt from 'bcrypt';
 import Sequelize from 'sequelize';
 import * as s from '../strings';
+import multer from 'multer'
 
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads/images/users/')
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + file.originalname)
+    }
+})
+
+let upload = multer({ storage: storage });
 let router = express.Router();
 const Op = Sequelize.Op;
 
 router.route('/users')
 	.get((req, res) => {
 		User.findAll().then(users => {
-			res.send(users);
+			res.json(users);
 		})
 	})
 
-	.post((req, res) => {
+	.post(upload.single('profile_pic'), (req, res) => {
 		let login = req.body.login;
 		let email = req.body.email;
 		let cpf = req.body.cpf;
@@ -24,9 +35,10 @@ router.route('/users')
 		let address = req.body.address;
 		let birthday = req.body.birthday;
 		let type = req.body.type;
-
-
-
+		let profile_pic
+		if (!(typeof req.file === "undefined")) {
+			profile_pic = req.file.path
+		}
 		// login and cpf and email check
 		User.findOne({
 			where: {
@@ -50,10 +62,11 @@ router.route('/users')
 						last_name: last_name,
 						address: address,
 						birthday: birthday,
-						type: type
+						type: type,
+						profile_pic: profile_pic
 					})
 						.then((u) => {
-							res.json({ message: s.userAdded, u });
+							res.json({ message: s.userAdded});
 						})
 				});
 			}
@@ -74,7 +87,7 @@ router.route('/users/:user_id')
 		})
 	})
 	// Modificar o usuário em caso de necessidade
-	.put((req, res) => {
+	.put(upload.single('profile_pic'), (req, res) => {
 		let login = req.body.login;
 		let email = req.body.email;
 		let cpf = req.body.cpf;
@@ -83,55 +96,71 @@ router.route('/users/:user_id')
 		let address = req.body.address;
 		let birthday = req.body.birthday;
 		let type = req.body.type;
+		let profile_pic
+		if (!(typeof req.file === "undefined")) {
+			profile_pic = req.file.path
+		}
 
 		User.findById(req.params.user_id).then(user => {
 			if (user) {
-				if (user.login == login) {
-					res.json({ message: s.loginExists });
-				}
-				else if (user.cpf == cpf) {
-					res.json({ message: s.cpfExists });
-				}
-				else if (user.email == email) {
-					res.json({ message: s.emailExists });
-				}
-				else {
-					if (!(typeof req.body.password === "undefined")) {
-						// Verifica o usuário com o mesmo id depois modifica
-						bcrypt.hash(req.body.password, 12).then((result) => {
-							user.update({
-								login: login,
-								password: result,
-								email: email,
-								cpf: cpf,
-								first_name: first_name,
-								last_name: last_name,
-								address: address,
-								birthday: birthday,
-								type: type
-							})
-								.then(() => {
-									res.json({ message: s.userUpdated, user });
-								})
+				User.findOne({where:{login: login}}).then(findLogin=>{
+					if (findLogin && user.id != findLogin.id){
+						res.json({message: "Esse login já está em uso"})
+					}else{
+						User.findOne({where:{email: email}}).then(findEmail=>{
+							if(findEmail && user.id != findEmail.id){
+								res.json({message: "Esse email já existe"})
+							}
+							else{
+								User.findOne({where:{cpf : cpf}}).then(findCpf=>{
+									if(findCpf && user.id != findCpf.id){
+										res.json({message: "Esse cpf já existe"})
+									}
+									else {
+										if (!(typeof req.body.password === "undefined")) {
+											// Verifica o usuário com o mesmo id depois modifica
+											bcrypt.hash(req.body.password, 12).then((result) => {
+												user.update({
+													login: login,
+													password: result,
+													email: email,
+													cpf: cpf,
+													first_name: first_name,
+													last_name: last_name,
+													address: address,
+													birthday: birthday,
+													type: type,
+													profile_pic: profile_pic
+												})
+													.then(() => {
+														res.json({ message: s.userUpdated, user });
+													})
+											})
+										} else {
+											user.update({
+												login: login,
+												email: email,
+												cpf: cpf,
+												first_name: first_name,
+												last_name: last_name,
+												address: address,
+												birthday: birthday,
+												type: type,
+												profile_pic: profile_pic
+											})
+												.then(() => {
+													res.json({ message: s.userUpdated });
+												})
+					
+										}
+					
+									}
+													})
+							}
 						})
-					} else {
-						user.update({
-							login: login,
-							email: email,
-							cpf: cpf,
-							first_name: first_name,
-							last_name: last_name,
-							address: address,
-							birthday: birthday,
-							type: type
-						})
-							.then(() => {
-								res.json({ message: s.userUpdated, user });
-							})
-
 					}
+				})
 
-				}
 
 			} else {
 				res.json({ message: s.userNotFound })
