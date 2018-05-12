@@ -20,6 +20,10 @@ let router = express.Router();
 
 router.use(checkToken)
 
+router.route('/check')
+    .post((req,res)=>{
+        res.json(req.user)
+    })
 router.route('/books')
     .get((req, res) => {
         Book.findAll({ include: [Category, Author] }).then(books => {
