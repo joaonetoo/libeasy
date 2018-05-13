@@ -5,6 +5,8 @@ import bcrypt from 'bcrypt';
 import Sequelize from 'sequelize';
 import * as s from '../strings';
 import multer from 'multer'
+const fs = require('fs')
+const fileType = require('file-type')
 
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -99,6 +101,10 @@ router.route('/users/:user_id')
 		let profile_pic
 		if (!(typeof req.file === "undefined")) {
 			profile_pic = req.file.path
+		}else{
+			if (req.body.profile_pic){
+				profile_pic = savePhoto(req.body.profile_pic, req.params.user_id)
+			}
 		}
 
 		User.findById(req.params.user_id).then(user => {
@@ -184,6 +190,16 @@ router.route('/users/:user_id')
 			}
 		})
 	})
+	
+function savePhoto(codigoBase64, user_id){
+	var base64Data = codigoBase64.replace(/^data:image\/png;base64,/, "");
+	let path = 'uploads/'+user_id+'.png'
+	let img = user_id+'.png'
+	require("fs").writeFile(path, base64Data, 'base64', function(err) {
+	  console.log(err);
+	});
+	return img
+	}
 
-
+	
 export default router;
