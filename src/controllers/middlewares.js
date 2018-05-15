@@ -4,7 +4,7 @@ import * as s from '../strings';
 export let checkToken = (req, res, next) => {
     const token = req.headers['x-access-token'];
     if (token) {
-        jwt.verify(token, "12121212", (err, decoded) => {
+        jwt.verify(token, process.env.SECRETOKEN, (err, decoded) => {
             if (err) {
                 res.json({ error: s.userUnathorized })
             } else {
