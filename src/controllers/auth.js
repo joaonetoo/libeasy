@@ -15,7 +15,7 @@ router.route('/auth')
 				bcrypt.compare(req.body.password,
 					user.password).then((result) => {
 						if (result) { // password is correct
-							const token = jwt.sign(user.get({ plain: true }), process.env.SECRETOKEN);
+							const token = jwt.sign(user.get({ plain: true }), "12121212");
 							res.json({ message: s.authUserAuthenticated, token: token });
 						}
 						else { // password is wrong
