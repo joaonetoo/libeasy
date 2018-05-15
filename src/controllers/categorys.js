@@ -19,11 +19,20 @@ router.route('/categories')
         if (req.user.type == "librarian") {
             const description = req.body.description;
             const data = { description: description }
-            Category.create(data).then(category => {
-                res.json({ message: s.categoryAdded })
+            
+            Category.findOne({where: {data}})
+            .then(res => {
+                if(res) {
+                    res.json({error: "Categoria ja existe!"})
+                } else {
+                    Category.create(data).then(category => {
+                        res.json({ message: s.categoryAdded, object: category })
+                    })
+                }
             })
-        } else {
-            res.json({ error: s.globalAccessDenied })
+                
+            } else {
+                res.json({ error: s.globalAccessDenied })
         }
     })
 
