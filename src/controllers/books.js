@@ -43,7 +43,7 @@ router.route('/books')
             }
             const data = { title: title, description: description, edition: edition, language: language, page_count: page_count, image: image }
             Book.create(data).then((book) => {
-                res.json({ message: s.bookAdded });
+                res.json({ message: s.bookAdded, object: book });
             })
         } else {
             res.json({ error: s.globalAccessDenied })

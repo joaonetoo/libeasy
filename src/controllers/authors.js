@@ -19,7 +19,7 @@ router.route('/authors')
         const name = req.body.name;
         const data = { name: name }
         Author.create(data).then(author => {
-            res.json({ message: s.authorAdded })
+            res.json({ message: s.authorAdded, object: author })
         })
     })
 
