@@ -16,11 +16,21 @@ router.route('/authors')
     })
 
     .post((req, res) => {
-        const name = req.body.name;
-        const data = { name: name }
-        Author.create(data).then(author => {
-            res.json({ message: s.authorAdded, object: author })
-        })
+            const name = req.body.name;
+            const data = { name: name }
+            Author.findOne({where: {name: req.body.name}})
+            .then(author => {
+                if(author) {
+                    res.json({error: "Autor ja existe!", object: author})
+                } else {
+                    Author.create(data).then(author => {
+                        res.json({ message: s.authorAdded, object: author })
+                    })
+                }
+            })
+        // } else {
+        //     res.json({error: s.globalAccessDenied})
+        // }
     })
 
 
