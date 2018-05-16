@@ -3,6 +3,19 @@ import { Material } from '../models/material';
 import Request from 'request';
 import { checkToken } from './middlewares'
 import * as s from '../strings';
+import multer from 'multer'
+
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads/materials/')
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + file.originalname)
+    }
+})
+
+let upload = multer({ storage: storage });
+
 
 let router = express.Router();
 
@@ -17,12 +30,17 @@ router.route('/materials')
         })
     })
 
-    .post((req, res) => {
+    .post(upload.single('image'),(req, res) => {
         const name = req.body.name;
         const description = req.body.description;
         const category = req.body.category;
+        let image
+        if (!(typeof req.file === "undefined")) {
+            image = req.file.path
+        }
+        image = req.body.image
 
-        Material.create({ name: name, description: description, category: category }).then((materials) => {
+        Material.create({ name: name, description: description, category: category,image: image }).then((materials) => {
             res.json({ message: s.materialAdded });
 
         });
@@ -39,13 +57,18 @@ router.route('/materials/:material_id')
         })
     })
 
-    .put((req, res) => {
+    .put(upload.single('image'),(req, res) => {
         Material.findById(req.params.material_id).then(material => {
             if (material) {
+                let image
+                if (!(typeof req.file === "undefined")) {
+                    image = req.file.path
+                }
                 material.update({
                     name: req.body.name,
                     description: req.body.description,
-                    category: req.body.category
+                    category: req.body.category,
+                    image: image
                 }).then(() => {
                     res.json(material);
                 })
