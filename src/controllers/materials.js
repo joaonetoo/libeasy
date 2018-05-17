@@ -3,19 +3,8 @@ import { Material } from '../models/material';
 import Request from 'request';
 import { checkToken } from './middlewares'
 import * as s from '../strings';
-import multer from 'multer'
-
-let storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './uploads/materials/')
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + file.originalname)
-    }
-})
-
-let upload = multer({ storage: storage });
-
+const fs = require('fs')
+const fileType = require('file-type')
 
 let router = express.Router();
 
@@ -24,21 +13,20 @@ router.use(checkToken)
 router.route('/materials')
     .get((req, res) => {
         Material.findAll().then(function (materials) {
-            res.send(materials);
+            res.json(materials);
 
 
         })
     })
 
-    .post(upload.single('image'),(req, res) => {
+    .post((req, res) => {
         const name = req.body.name;
         const description = req.body.description;
         const category = req.body.category;
         let image
-        if (!(typeof req.file === "undefined")) {
-            image = req.file.path
+        if (req.body.image){
+            image = saveImage(req.body.image, req.body.name)
         }
-        image = req.body.image
 
         Material.create({ name: name, description: description, category: category,image: image }).then((materials) => {
             res.json({ message: s.materialAdded });
@@ -57,13 +45,14 @@ router.route('/materials/:material_id')
         })
     })
 
-    .put(upload.single('image'),(req, res) => {
+    .put((req, res) => {
         Material.findById(req.params.material_id).then(material => {
             if (material) {
                 let image
-                if (!(typeof req.file === "undefined")) {
-                    image = req.file.path
+                if (req.body.image){
+                    image = req.body.image
                 }
+
                 material.update({
                     name: req.body.name,
                     description: req.body.description,
@@ -89,7 +78,16 @@ router.route('/materials/:material_id')
             }
         })
     });
-
+function saveImage(codigoBase64, file_name){
+    var base64Data = codigoBase64.replace(/^data:image\/png;base64,/, "");
+    let path = 'uploads/'+file_name+'.png'
+    let img = file_name+'.png'
+    require("fs").writeFile(path, base64Data, 'base64', function(err) {
+        console.log(err);
+    });
+    return img
+    }
+    
 export default router;
 
         // })
