@@ -50,7 +50,7 @@ router.route('/materials/:material_id')
             if (material) {
                 let image
                 if (req.body.image){
-                    image = req.body.image
+                    image = saveImage(req.body.image, req.body.name)
                 }
 
                 material.update({

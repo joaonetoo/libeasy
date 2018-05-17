@@ -5,16 +5,6 @@ import { checkToken } from './middlewares'
 import multer from 'multer'
 import * as s from '../strings'
 
-let storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './uploads/images/books/')
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + file.originalname)
-    }
-})
-
-let upload = multer({ storage: storage });
 
 let router = express.Router();
 
@@ -30,7 +20,7 @@ router.route('/books')
             res.json(books)
         })
     })
-    .post(upload.single('image'), (req, res) => {
+    .post((req, res) => {
         if (req.user.type == "librarian") {
             const title = req.body.title;
             const description = req.body.description;
@@ -38,8 +28,8 @@ router.route('/books')
             const language = req.body.language;
             const page_count = req.body.page_count
             let image
-            if (!(typeof req.file === "undefined")) {
-                image = req.file.path
+            if (req.body.image){
+                image = saveImage(req.body.image, req.body.title)
             }
             const data = { title: title, description: description, edition: edition, language: language, page_count: page_count, image: image }
             Book.create(data).then((book) => {
@@ -61,7 +51,7 @@ router.route('/books/:book_id')
             res.json({ error: s.globalAccessDenied })
         }
     })
-    .put(upload.single('image'), (req, res) => {
+    .put((req, res) => {
         if (req.user.type == "librarian") {
             Book.findById(req.params.book_id).then(book => {
                 if (book) {
@@ -71,10 +61,9 @@ router.route('/books/:book_id')
                     const language = req.body.language;
                     const page_count = req.body.page_count
                     let image
-                    if (!(typeof req.file === "undefined")) {
-                        image = req.file.path
-                    }
-
+                    if (req.body.image){
+                        image = saveImage(req.body.image, req.body.title)
+                    }            
                     const data = { title: title, description: description, edition: edition, language: language, page_count: page_count, image: image }
                     book.update(data).then(() => {
                         res.json(book)
@@ -414,7 +403,16 @@ router.route('/books/barcode-generator/:book_id')
         })
     })
 
-
+function saveImage(codigoBase64, file_name){
+    var base64Data = codigoBase64.replace(/^data:image\/png;base64,/, "");
+    let path = 'uploads/'+file_name+'.png'
+    let img = file_name+'.png'
+    require("fs").writeFile(path, base64Data, 'base64', function(err) {
+        console.log(err);
+    });
+    return img
+    }
+    
 export default router;
 
 function toFile(path, filename, png) {
