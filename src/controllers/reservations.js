@@ -22,25 +22,31 @@ router.route('/reservations')
         const bookId = req.body.bookId;
         const userId = req.body.userId;
         const data = { bookId: bookId, userId: userId }
-        Reservation.create(data).then(reservation => {
-            User.findById(userId).then(user => {
-                const dateNow = reservation.date
-                const dateNowToString = (dateNow.getDate() + 1) + "/" + dateNow.getMonth() + "/" + dateNow.getFullYear()
-                const msg = {
-                    to: user.email,
-                    from: 'avisos@libeasy.org',
-                    subject: 'Reserva de livro',
-                    text: "Caro" + user.first_name + " você fez uma reserva de livro, você deve efetuar"
-                        + " o empréstimo até a data a seguir: " + dateNowToString,
-                    html: "Caro <strong>" + user.first_name + "</strong> você fez uma reserva de livro, você deve efetuar"
-                        + " o empréstimo até a data a seguir: " + dateNowToString
-                };
-                sgMail.send(msg).then(() => {
-                    res.json({ message: s.bookReservated })
-                }).catch(e => {
-                    res.json({ error: s.unableToSendEmail })
-                });
-            })
+        Reservation.findOne({ where: { bookId: req.body.bookId } }).then((reserva) => {
+            if(reserva) {
+                res.json({error: "reserva ja existe"})
+            } else {
+                Reservation.create(data).then(reservation => {
+                    User.findById(userId).then(user => {
+                        const dateNow = reservation.date
+                        const dateNowToString = (dateNow.getDate() + 1) + "/" + dateNow.getMonth() + "/" + dateNow.getFullYear()
+                        const msg = {
+                            to: user.email,
+                            from: 'avisos@libeasy.org',
+                            subject: 'Reserva de livro',
+                            text: "Caro" + user.first_name + " você fez uma reserva de livro, você deve efetuar"
+                                + " o empréstimo até a data a seguir: " + dateNowToString,
+                            html: "Caro <strong>" + user.first_name + "</strong> você fez uma reserva de livro, você deve efetuar"
+                                + " o empréstimo até a data a seguir: " + dateNowToString
+                        };
+                        sgMail.send(msg).then(() => {
+                            res.json({ message: s.bookReservated, object: reservation })
+                        }).catch(e => {
+                            res.json({ error: s.unableToSendEmail, object: reservation })
+                        });
+                    })
+                })
+            }
         })
     })
 router.route('/reservations/:id_reservation')
@@ -50,12 +56,20 @@ router.route('/reservations/:id_reservation')
         })
     })
 
-router.route('/reservations/search/:user_id')
+router.route('/reservations/searchByUserId/:user_id')
     .get((req, res) => {
         Reservation.findAll({ where: { expired: false, userId: req.params.user_id } }).then(reservations => {
             res.json(reservations)
         })
     })
+
+router.route('/reservations/searchByBookId/:book_id')
+.get((req, res) => {
+    Reservation.findAll({ where: { expired: false, bookId: req.params.book_id } }).then(reservations => {
+        console.log("achou")
+        res.json(reservations)
+    })
+})
 
 let validateReservation = date => {
     let yourDate = date
