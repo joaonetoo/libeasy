@@ -4,6 +4,7 @@ import Request from 'request';
 import { checkToken } from './middlewares'
 import multer from 'multer'
 import * as s from '../strings'
+import Sequelize from 'sequelize';
 
 
 let router = express.Router();
@@ -92,7 +93,26 @@ router.route('/books/:book_id')
         }
     })
 
-
+router.route('/books/infos/:book_params')
+    .get((req,res)=>{
+        const Op = Sequelize.Op;
+        Book.findAll({where:{ [Op.or]: [
+            {
+              title: {
+                [Op.like]: '%'+req.params.book_params+'%'
+              }
+            },
+            {
+              description: {
+                [Op.like]: '%'+req.params.book_params+'%'
+              }
+            }
+          ]}
+        }).then(results =>{
+            res.json(results)
+        })
+    })
+    
 
 router.route('/books/search/:search_id')
 
@@ -104,24 +124,36 @@ router.route('/books/search/:search_id')
                 }
                 let body_api = JSON.parse(body);
                 let data_api = body_api.items;
-                let data = [];
-                // let categories_translate = [];
-                data_api.forEach(value => {
-                    const obj = {
-                        "api_id": value.id,
-                        "title": value.volumeInfo.title,
-                        "authors": value.volumeInfo.authors,
-                        "description": value.volumeInfo.description,
-                        "language": value.volumeInfo.language,
-                        "pageCount": value.volumeInfo.pageCount,
-                        "categories": value.volumeInfo.categories,
-                        "edition": value.volumeInfo.contentVersion, //contentVersion in google_api
-                        "images": value.volumeInfo.imageLinks
-                    }
-                    data.push(obj);
 
-                })
-                res.json(data);
+                if(data_api){
+                    let data = [];
+                    // let categories_translate = [];
+                    data_api.forEach(value => {
+                        let image =""
+                        if(typeof value.volumeInfo.imageLinks === "undefined"){
+                            image = "http://localhost:3000/no-image.png"
+                        }else{
+                            image = value.volumeInfo.imageLinks.smallThumbnail
+                        }
+                        const obj = {
+                            "api_id": value.id,
+                            "title": value.volumeInfo.title,
+                            "authors": value.volumeInfo.authors,
+                            "description": value.volumeInfo.description,
+                            "language": value.volumeInfo.language,
+                            "pageCount": value.volumeInfo.pageCount,
+                            "categories": value.volumeInfo.categories,
+                            "edition": value.volumeInfo.contentVersion, //contentVersion in google_api
+                            "image": image
+                        }
+                        data.push(obj);
+    
+                    })
+                    res.json(data);
+     
+                }else{
+                    res.json("Book not found")
+                }
             });
         } else {
             res.json({ error: s.globalAccessDenied })
@@ -142,7 +174,13 @@ router.route('/books/create')
                 let categories;
                 let authors;
                 data_api.filter(y => {
+                    // y.volumeInfo.imageLinks.thumbnail
                     if (y.id == req.body.api_id) {
+                        if(typeof y.volumeInfo.imageLinks === "undefined"){
+                            image = "http://localhost:3000/no-image.png"
+                        }else{
+                            image = y.volumeInfo.imageLinks.smallThumbnail
+                        }
                         data = {
                             "api_id": y.id,
                             "title": y.volumeInfo.title,
@@ -150,8 +188,7 @@ router.route('/books/create')
                             "language": y.volumeInfo.language,
                             "page_count": y.volumeInfo.pageCount,
                             "edition": y.volumeInfo.contentVersion, //contentVersion in google_api
-                            "image": y.volumeInfo.imageLinks.thumbnail,
-                            "image_thumbnail": y.volumeInfo.imageLinks.smallThumbnail
+                            "image": image,
                         }
                         categories = y.volumeInfo.categories
                         authors = y.volumeInfo.authors
