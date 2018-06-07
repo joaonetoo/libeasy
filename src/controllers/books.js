@@ -118,7 +118,7 @@ router.route('/books/search/:search_id')
 
     .get((req, res) => {
         if (req.user.type == "librarian") {
-            Request.get("https://www.googleapis.com/books/v1/volumes?q=" + req.params.search_id + "& key=" + process.env.GOOGLE_BOOK_API, (error, response, body) => {
+            Request.get("https://www.googleapis.com/books/v1/volumes?q=" + req.params.search_id + "&maxResults=40& key=" + process.env.GOOGLE_BOOK_API, (error, response, body) => {
                 if (error) {
                     res.json({ error: s.bookNotFound });
                 }
@@ -129,7 +129,7 @@ router.route('/books/search/:search_id')
                     let data = [];
                     // let categories_translate = [];
                     data_api.forEach(value => {
-                        let image =""
+                        let image = ""
                         if(typeof value.volumeInfo.imageLinks === "undefined"){
                             image = "http://localhost:3000/no-image.png"
                         }else{
@@ -176,6 +176,7 @@ router.route('/books/create')
                 data_api.filter(y => {
                     // y.volumeInfo.imageLinks.thumbnail
                     if (y.id == req.body.api_id) {
+                        let image = ""
                         if(typeof y.volumeInfo.imageLinks === "undefined"){
                             image = "http://localhost:3000/no-image.png"
                         }else{
