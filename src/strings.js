@@ -42,6 +42,7 @@ export const materialDeleted            = "Material deleted";
 export const reservationNotFound        = "Reservation not found";
 export const reservationUpdated         = "Reservation updated";
 export const reservationAdded           = "Reservation added";
+export const reservationExists          = "Reservation already exists";
 
 export const categoryAdded              = "Category added";
 export const categoryDeleted            = "Category deleted";

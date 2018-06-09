@@ -2,6 +2,7 @@ import express from 'express';
 import { Book } from '../models/book'
 import { User } from '../models/user'
 import { Reservation } from '../models/reservation'
+import { Loan } from '../models/loan'
 import Request from 'request';
 import Sequelize from 'sequelize';
 import sgMail from '@sendgrid/mail';
@@ -24,7 +25,7 @@ router.route('/reservations')
         const data = { bookId: bookId, userId: userId }
         Reservation.findOne({ where: { bookId: req.body.bookId } }).then((reserva) => {
             if(reserva) {
-                res.json({error: "reserva ja existe"})
+                res.json({error: s.reservationExists})
             } else {
                 Reservation.create(data).then(reservation => {
                     User.findById(userId).then(user => {
@@ -58,7 +59,7 @@ router.route('/reservations/:id_reservation')
 
 router.route('/reservations/searchByUserId/:user_id')
     .get((req, res) => {
-        Reservation.findAll({ where: { expired: false, userId: req.params.user_id } }).then(reservations => {
+        Reservation.findAll({ where: { userId: req.params.user_id }, include: [Book, User] }).then(reservations => {
             res.json(reservations)
         })
     })

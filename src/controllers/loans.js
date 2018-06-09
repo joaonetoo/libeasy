@@ -158,6 +158,20 @@ router.route('/loans/search/:userId')
 		})
 	})
 
+router.route('/loans/searchByUserId/:userId')
+	.get((req, res) => {
+		Loan.findAll({ where: { userId: req.params.userId } }).then(loans => {
+			res.json(loans)
+		})
+	})
+
+router.route('/loans/searchByBookId/:bookId')
+	.get((req, res) => {
+		Loan.findAll({ where: { bookId: req.params.bookId } }).then(loans => {
+			res.json(loans)
+		})
+	})
+
 function dateDiff(finalDate) {
 	let now = new Date('2018-05-28');
 	let millisecondsPerDay = 86400000;
