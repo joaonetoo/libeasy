@@ -66,7 +66,6 @@ router.route('/reservations/searchByUserId/:user_id')
 router.route('/reservations/searchByBookId/:book_id')
 .get((req, res) => {
     Reservation.findAll({ where: { expired: false, bookId: req.params.book_id } }).then(reservations => {
-        console.log("achou")
         res.json(reservations)
     })
 })
