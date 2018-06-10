@@ -170,6 +170,8 @@ router.route('/books/create')
                 }
                 let body_api = JSON.parse(body);
                 let data_api = body_api.items;
+                if(data_api){
+
                 let data = {};
                 let categories;
                 let authors;
@@ -195,7 +197,7 @@ router.route('/books/create')
                         authors = y.volumeInfo.authors
                     }
                 })
-
+                
                 Book.findOne({ where: { api_id: data.api_id } }).then(searchBook => {
                     if (searchBook == null) {
                         Book.create(data).then(book => {
@@ -233,7 +235,11 @@ router.route('/books/create')
                         res.json({ message: s.bookExists })
                     }
                 })
+            }else{
+                res.json({ message: s.bookNotFound })   
+            }
             })
+            
         } else {
             res.json({ error: s.globalAccessDenied })
         }

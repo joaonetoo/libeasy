@@ -65,12 +65,12 @@ router.route('/reservations/searchByUserId/:user_id')
     })
 
 router.route('/reservations/searchByBookId/:book_id')
-.get((req, res) => {
-    Reservation.findOne({ include: [Book, User], where: { expired: false, bookId: req.params.book_id }}).then(reservations => {
-        res.json(reservations)
+    .get((req, res) => {
+        Reservation.findOne({ include: [Book, User], where: { expired: false, bookId: req.params.book_id }}).then(reservations => {
+            res.json(reservations)
+        })
     })
-})
-    
+        
 let validateReservation = date => {
     let yourDate = date
     let dateNow = new Date(Sequelize.NOW)
