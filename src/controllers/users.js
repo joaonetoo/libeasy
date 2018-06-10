@@ -155,7 +155,7 @@ router.route('/users/:user_id')
 												profile_pic: profile_pic
 											})
 												.then(() => {
-													res.json({ message: s.userUpdated });
+													res.json({ message: s.userUpdated,user });
 												})
 					
 										}

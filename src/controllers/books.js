@@ -159,6 +159,52 @@ router.route('/books/search/:search_id')
             res.json({ error: s.globalAccessDenied })
         }
     })
+    router.route('/books/search2/:search_id/:index')
+
+    .get((req, res) => {
+        if (req.user.type == "librarian") {
+            Request.get("https://www.googleapis.com/books/v1/volumes?q=" + req.params.search_id + "&startIndex="+req.params.index+"&maxResults=40& key=" + process.env.GOOGLE_BOOK_API, (error, response, body) => {
+                if (error) {
+                    res.json({ error: s.bookNotFound });
+                }
+                let body_api = JSON.parse(body);
+                let data_api = body_api.items;
+
+                if(data_api){
+                    let data = [];
+                    // let categories_translate = [];
+                    data_api.forEach(value => {
+                        let image = ""
+                        if(typeof value.volumeInfo.imageLinks === "undefined"){
+                            image = "http://localhost:3000/no-image.png"
+                        }else{
+                            image = value.volumeInfo.imageLinks.smallThumbnail
+                        }
+                        const obj = {
+                            "api_id": value.id,
+                            "title": value.volumeInfo.title,
+                            "authors": value.volumeInfo.authors,
+                            "description": value.volumeInfo.description,
+                            "language": value.volumeInfo.language,
+                            "pageCount": value.volumeInfo.pageCount,
+                            "categories": value.volumeInfo.categories,
+                            "edition": value.volumeInfo.contentVersion, //contentVersion in google_api
+                            "image": image
+                        }
+                        data.push(obj);
+    
+                    })
+                    res.json(data);
+     
+                }else{
+                    res.json("Book not found")
+                }
+            });
+        } else {
+            res.json({ error: s.globalAccessDenied })
+        }
+    })
+
 
 router.route('/books/create')
     .post((req, res) => {
