@@ -85,7 +85,7 @@ router.route('/fines/:fine_id')
 
 router.route('/fines/search/:userId')
     .get((req, res) => {
-        Fine.findAll({ where: { paid: false, userId: req.params.userId } })
+        Fine.findAll({ where: { userId: req.params.userId }, include: [Book, User] })
             .then(fine => {
                 res.json(fine)
             })
@@ -156,6 +156,10 @@ function renderBoleto(res, boleto) {
 }
 
 function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+    if(string != null) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    } else {
+        return ""
+    }
 }
 export default router;

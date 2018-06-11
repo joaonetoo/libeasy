@@ -55,7 +55,21 @@ router.route('/reservations/:id_reservation')
         Reservation.findById(req.params.id_reservation).then(reservation => {
             res.json(reservation)
         })
-    })
+    }).put((req, res) => {
+		let expired = req.body.expired;
+
+		Reservation.findById(req.params.id_reservation).then(reservation => {
+			if (reservation) {
+				reservation.update({
+					expired: expired
+				}).then(() => {
+					res.json({ message: s.reservationUpdated, reservation })
+				})
+			} else {
+				res.json({ error: s.reservationNotFound })
+			}
+		})
+	})
 
 router.route('/reservations/searchByUserId/:user_id')
     .get((req, res) => {
