@@ -36,7 +36,7 @@ router.route('/loans')
 					Loan.findOne({ where: { bookId: bookId } }).then(loanbook => {
 						Loan.findOne({ where: { materialId: materialId } }).then(loanmaterial => {
 							if(loanbook) {
-								if(!loanbook.delivered) {
+								if(!loanbook.delivered && loanbook.userId !== userId) {
 									res.json({ message: s.borrowedBook })
 								}
 							}
@@ -48,7 +48,7 @@ router.route('/loans')
 							}
 	
 							if (reservation) {
-								if ((reservation.expired == false) && (reservation.userId != req.user.id)) {
+								if ((reservation.expired == false) && (reservation.userId != req.body.userId)) {
 									res.json({ message: s.bookReservated })
 								}else{
 									Book.findOne({ where: { id: bookId }, attributes: ['id'] }).then(book => {
@@ -160,20 +160,20 @@ router.route('/loans/search/:userId')
 
 router.route('/loans/searchByUserId/:userId')
 	.get((req, res) => {
-		Loan.findAll({ where: { userId: req.params.userId } }).then(loans => {
+		Loan.findAll({ include: [Book, User], where: { userId: req.params.userId } }).then(loans => {
 			res.json(loans)
 		})
 	})
 
 router.route('/loans/searchByBookId/:bookId')
 	.get((req, res) => {
-		Loan.findAll({ where: { bookId: req.params.bookId } }).then(loans => {
+		Loan.findAll({where: { bookId: req.params.bookId } }).then(loans => {
 			res.json(loans)
 		})
 	})
 
 function dateDiff(finalDate) {
-	let now = new Date('2018-05-28');
+	let now = new Date('2018-06-30');
 	let millisecondsPerDay = 86400000;
 	let diff = Math.round(now - finalDate) / (millisecondsPerDay);
 	return diff;

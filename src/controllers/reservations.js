@@ -25,7 +25,7 @@ router.route('/reservations')
         const data = { bookId: bookId, userId: userId }
         Reservation.findOne({ where: { bookId: req.body.bookId } }).then((reserva) => {
             if(reserva) {
-                res.json({error: s.reservationExists})
+                res.json({message: s.reservationExists})
             } else {
                 Reservation.create(data).then(reservation => {
                     User.findById(userId).then(user => {
@@ -43,7 +43,7 @@ router.route('/reservations')
                         sgMail.send(msg).then(() => {
                             res.json({ message: s.bookReservated, object: reservation })
                         }).catch(e => {
-                            res.json({ error: s.unableToSendEmail, object: reservation })
+                            res.json({ message: s.unableToSendEmail, object: reservation })
                         });
                     })
                 })
@@ -56,12 +56,14 @@ router.route('/reservations/:id_reservation')
             res.json(reservation)
         })
     }).put((req, res) => {
-		let expired = req.body.expired;
+        let expired = req.body.expired;
+        let bookId = req.body.bookId
 
 		Reservation.findById(req.params.id_reservation).then(reservation => {
 			if (reservation) {
 				reservation.update({
-					expired: expired
+                    expired: expired,
+                    bookId: bookId
 				}).then(() => {
 					res.json({ message: s.reservationUpdated, reservation })
 				})
