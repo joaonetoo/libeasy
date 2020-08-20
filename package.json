@@ -20,7 +20,7 @@
   "homepage": "https://github.com/joaonetoo/libeasy#readme",
   "dependencies": {
     "@sendgrid/mail": "^6.2.1",
-    "bcrypt": "^1.0.3",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.18.2",
     "bwip-js": "^1.6.3",
     "cors": "^2.8.4",
